@@ -24,6 +24,8 @@ def _clean_db():
     """Ensure a fresh database for each test."""
     db_mod.init_db()
     conn = db_mod.get_connection()
+    conn.execute("DELETE FROM email_events")
+    conn.execute("DELETE FROM email_messages")
     conn.execute("DELETE FROM templates")
     conn.commit()
     conn.close()
@@ -211,3 +213,152 @@ def test_export_html():
 def test_export_html_not_found():
     response = client.get("/api/templates/nonexistent-id/html")
     assert response.status_code == 404
+
+
+# --- Dashboard / email analytics ---
+
+
+def test_dashboard_overview_empty():
+    response = client.get("/api/dashboard/overview?days=7")
+    assert response.status_code == 200
+    data = response.json()
+    assert "overview" in data
+    assert data["overview"]["messages_sent"] == 0
+    assert data["overview"]["messages_failed"] == 0
+    assert data["overview"]["tracked_opens"] == 0
+    assert data["overview"]["period_days"] == 7
+    assert data["recent_failures"] == []
+
+
+def test_dashboard_overview_invalid_days():
+    assert client.get("/api/dashboard/overview?days=0").status_code == 400
+    assert client.get("/api/dashboard/overview?days=400").status_code == 400
+
+
+def test_ingest_message_event_creates_message():
+    create = client.post("/api/templates", json={"name": "Campaign A"})
+    tid = create.json()["id"]
+    response = client.post(
+        "/api/events/message",
+        json={
+            "recipient": "user@example.com",
+            "subject": "Hello",
+            "event_type": "delivered",
+            "template_id": tid,
+        },
+    )
+    assert response.status_code == 201
+    body = response.json()
+    assert body["message_id"]
+    assert body["event_id"]
+
+    overview = client.get("/api/dashboard/overview?days=7").json()
+    assert overview["overview"]["messages_sent"] == 1
+    assert overview["overview"]["delivery_rate"] == 1.0
+
+
+def test_ingest_failure_updates_message_and_recent_failures():
+    response = client.post(
+        "/api/events/message",
+        json={
+            "recipient": "bad@example.com",
+            "subject": "Bounce test",
+            "event_type": "failed",
+            "failure_reason": "Mailbox full",
+        },
+    )
+    assert response.status_code == 201
+    mid = response.json()["message_id"]
+
+    overview = client.get("/api/dashboard/overview?days=7").json()
+    assert overview["overview"]["messages_failed"] == 1
+    ids = [f["message_id"] for f in overview["recent_failures"]]
+    assert mid in ids
+
+
+def test_ingest_invalid_event_type():
+    response = client.post(
+        "/api/events/message",
+        json={
+            "recipient": "a@b.com",
+            "event_type": "not_a_real_event",
+        },
+    )
+    assert response.status_code == 400
+
+
+def test_ingest_template_not_found():
+    response = client.post(
+        "/api/events/message",
+        json={
+            "recipient": "a@b.com",
+            "event_type": "sent",
+            "template_id": "00000000-0000-0000-0000-000000000000",
+        },
+    )
+    assert response.status_code == 404
+
+
+def test_ingest_message_id_not_found():
+    response = client.post(
+        "/api/events/message",
+        json={
+            "message_id": "00000000-0000-0000-0000-000000000000",
+            "recipient": "a@b.com",
+            "event_type": "sent",
+        },
+    )
+    assert response.status_code == 404
+
+
+def test_track_open_records_event():
+    mid = client.post(
+        "/api/events/message",
+        json={
+            "recipient": "open@example.com",
+            "subject": "Track me",
+            "event_type": "delivered",
+        },
+    ).json()["message_id"]
+
+    pixel = client.get(f"/api/track/open/{mid}")
+    assert pixel.status_code == 200
+    assert "image/gif" in pixel.headers["content-type"]
+    assert len(pixel.content) > 0
+
+    overview = client.get("/api/dashboard/overview?days=7").json()
+    assert overview["overview"]["tracked_opens"] == 1
+
+
+def test_dashboard_trends_shape():
+    client.post(
+        "/api/events/message",
+        json={
+            "recipient": "trend@example.com",
+            "event_type": "sent",
+        },
+    )
+    response = client.get("/api/dashboard/trends?days=7")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["period_days"] == 7
+    assert len(data["series"]) == 7
+    assert all("date" in d and "sent" in d for d in data["series"])
+
+
+def test_dashboard_top_templates():
+    tid = client.post("/api/templates", json={"name": "Top T"}).json()["id"]
+    client.post(
+        "/api/events/message",
+        json={
+            "recipient": "x@y.com",
+            "event_type": "delivered",
+            "template_id": tid,
+        },
+    )
+    response = client.get("/api/dashboard/top-templates?days=7&limit=5")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["templates"]) >= 1
+    assert data["templates"][0]["template_id"] == tid
+    assert data["templates"][0]["send_count"] >= 1

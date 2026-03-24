@@ -86,6 +86,54 @@ export interface TemplateUpdate {
   preview_text?: string
 }
 
+/** Dashboard / email analytics (matches backend Pydantic models) */
+export interface DashboardOverview {
+  period_days: number
+  messages_sent: number
+  messages_failed: number
+  tracked_opens: number
+  templates_count: number
+  delivery_rate: number | null
+  open_rate: number | null
+}
+
+export interface RecentFailureRow {
+  message_id: string
+  recipient: string
+  subject: string
+  failure_reason: string | null
+  failed_at: string | null
+}
+
+export interface DashboardOverviewExtended {
+  overview: DashboardOverview
+  recent_failures: RecentFailureRow[]
+}
+
+export interface TrendDay {
+  date: string
+  sent: number
+  failed: number
+  opens: number
+}
+
+export interface DashboardTrends {
+  period_days: number
+  series: TrendDay[]
+}
+
+export interface TopTemplateRow {
+  template_id: string
+  template_name: string
+  send_count: number
+  open_count: number
+}
+
+export interface DashboardTopTemplates {
+  period_days: number
+  templates: TopTemplateRow[]
+}
+
 export const DEFAULT_BLOCK_PROPERTIES: Record<BlockType, Record<string, unknown>> = {
   text: {
     content: 'Enter your text here...',

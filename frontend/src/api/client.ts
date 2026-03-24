@@ -1,4 +1,11 @@
-import type { Template, TemplateCreate, TemplateUpdate } from '../types'
+import type {
+  DashboardOverviewExtended,
+  DashboardTopTemplates,
+  DashboardTrends,
+  Template,
+  TemplateCreate,
+  TemplateUpdate,
+} from '../types'
 
 const BASE = '/api/templates'
 
@@ -52,5 +59,19 @@ export const api = {
       if (!r.ok) throw new Error(`API error: ${r.status}`)
       return r.text()
     })
+  },
+
+  getDashboardOverview(days = 7): Promise<DashboardOverviewExtended> {
+    return request<DashboardOverviewExtended>(`/api/dashboard/overview?days=${days}`)
+  },
+
+  getDashboardTrends(days = 7): Promise<DashboardTrends> {
+    return request<DashboardTrends>(`/api/dashboard/trends?days=${days}`)
+  },
+
+  getDashboardTopTemplates(days = 7, limit = 5): Promise<DashboardTopTemplates> {
+    return request<DashboardTopTemplates>(
+      `/api/dashboard/top-templates?days=${days}&limit=${limit}`,
+    )
   },
 }

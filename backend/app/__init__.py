@@ -1,0 +1,1 @@
+"""Email Templates API backend."""

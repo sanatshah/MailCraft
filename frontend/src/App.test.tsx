@@ -140,7 +140,11 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
     })
+    expect(screen.getByRole('heading', { level: 1, name: 'Email performance' })).toBeInTheDocument()
     expect(screen.getByTestId('home-empty-banner')).toBeInTheDocument()
+    expect(screen.getByTestId('home-trend-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('home-top-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('home-fail-empty')).toBeInTheDocument()
     expect(screen.getByText('Manage templates')).toBeInTheDocument()
   })
 
@@ -158,6 +162,9 @@ describe('App', () => {
     expect(screen.getByTestId('home-kpi-failed')).toHaveTextContent('1')
     expect(screen.getByTestId('home-kpi-opens')).toHaveTextContent('5')
     expect(screen.getByTestId('home-trend-chart')).toBeInTheDocument()
+    expect(
+      screen.getByRole('table', { name: /daily activity values for the last 7 days/i }),
+    ).toBeInTheDocument()
     expect(screen.getByTestId('home-top-templates')).toBeInTheDocument()
     expect(screen.getByTestId('home-recent-failures')).toBeInTheDocument()
   })

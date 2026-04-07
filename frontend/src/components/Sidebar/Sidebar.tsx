@@ -43,18 +43,53 @@ function isNavActive(pathname: string, label: string): boolean {
   return false
 }
 
-export function Sidebar() {
+export function Sidebar({
+  collapsed,
+  onToggle,
+}: {
+  collapsed: boolean
+  onToggle: () => void
+}) {
   const location = useLocation()
 
   return (
-    <aside className="sidebar" data-testid="sidebar">
+    <aside
+      className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}
+      data-testid="sidebar"
+      data-collapsed={collapsed}
+    >
       <div className="sidebar-header">
-        <div className="sidebar-logo">
-          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-            <rect width="32" height="32" rx="8" fill="#EF6351" />
-            <path d="M8 10h16v2H8zM8 15h12v2H8zM8 20h14v2H8z" fill="#fff" />
-          </svg>
-          <span className="sidebar-brand">MailCraft</span>
+        <div className="sidebar-header-top">
+          <div className="sidebar-logo">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+              <rect width="32" height="32" rx="8" fill="#EF6351" />
+              <path d="M8 10h16v2H8zM8 15h12v2H8zM8 20h14v2H8z" fill="#fff" />
+            </svg>
+            {!collapsed && <span className="sidebar-brand">MailCraft</span>}
+          </div>
+          <button
+            type="button"
+            className="sidebar-toggle"
+            onClick={onToggle}
+            aria-label={collapsed ? 'Expand side menu' : 'Collapse side menu'}
+            aria-pressed={collapsed}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 20 20"
+              fill="none"
+              className={collapsed ? 'sidebar-toggle-icon sidebar-toggle-icon--collapsed' : 'sidebar-toggle-icon'}
+            >
+              <path
+                d="M12 5L7 10L12 15"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -65,14 +100,17 @@ export function Sidebar() {
               key={item.label}
               className="sidebar-nav-item sidebar-nav-item--placeholder"
               aria-disabled="true"
+              title={collapsed ? item.label : undefined}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
-              <span className="sidebar-nav-label">{item.label}</span>
+              {!collapsed && <span className="sidebar-nav-label">{item.label}</span>}
             </div>
           ) : (
             <NavLink
               key={item.label}
               to={item.path}
+              title={collapsed ? item.label : undefined}
+              aria-label={collapsed ? item.label : undefined}
               className={() =>
                 `sidebar-nav-item ${
                   isNavActive(location.pathname, item.label) ? 'active' : ''
@@ -80,14 +118,17 @@ export function Sidebar() {
               }
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
-              <span className="sidebar-nav-label">{item.label}</span>
+              {!collapsed && <span className="sidebar-nav-label">{item.label}</span>}
             </NavLink>
           ),
         )}
       </nav>
 
-      <div className="sidebar-footer">
-        <div className="sidebar-nav-item">
+      <div className="sidebar-footer" title={collapsed ? 'Account' : undefined}>
+        <div
+          className="sidebar-nav-item"
+          aria-label={collapsed ? 'Account' : undefined}
+        >
           <span className="sidebar-nav-icon">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
@@ -95,7 +136,7 @@ export function Sidebar() {
               <path d="M5 16.5C5.5 14 7.5 12.5 10 12.5C12.5 12.5 14.5 14 15 16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </span>
-          <span className="sidebar-nav-label">Account</span>
+          {!collapsed && <span className="sidebar-nav-label">Account</span>}
         </div>
       </div>
     </aside>

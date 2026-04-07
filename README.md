@@ -55,7 +55,6 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 | `GET` | `/api/templates/{id}` | Get template |
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
-| `POST` | `/api/templates/{id}/duplicate` | Duplicate template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.

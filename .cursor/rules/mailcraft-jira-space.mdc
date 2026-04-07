@@ -1,0 +1,11 @@
+---
+description: Mailcraft Jira space/project name for tickets and Atlassian tools
+alwaysApply: true
+---
+
+# Jira space
+
+When creating, searching, or referencing Jira work for this repository, use the **MailCraft** space (Jira project/space name).
+
+- Prefer **MailCraft** as the project or space identifier when tools ask for a project, space, or site context tied to Mailcraft development.
+- If a tool requires a project key and differs from the display name, use the key that maps to the MailCraft project in your Jira instance; the canonical human-facing name for this product area is **MailCraft**.

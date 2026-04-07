@@ -95,13 +95,6 @@ export function Home() {
   return (
     <div className="home-dashboard" data-testid="home-dashboard">
       <header className="home-header">
-        <div>
-          <h1 className="home-title">Overview</h1>
-          <p className="home-subtitle">
-            Email health and engagement for the selected period. Reads are tracked opens (pixel loads),
-            not guaranteed human reads.
-          </p>
-        </div>
         <div className="home-header-actions">
           <label className="home-period-label" htmlFor="home-period">
             Period

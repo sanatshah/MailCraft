@@ -137,26 +137,6 @@ def test_delete_template_not_found():
     assert response.status_code == 404
 
 
-def test_duplicate_template():
-    create_resp = client.post(
-        "/api/templates",
-        json={
-            "name": "Original",
-            "subject": "Test Subject",
-            "content": [{"id": "b1", "type": "text", "properties": {"content": "Hi"}}],
-        },
-    )
-    template_id = create_resp.json()["id"]
-
-    response = client.post(f"/api/templates/{template_id}/duplicate")
-    assert response.status_code == 201
-    data = response.json()
-    assert data["name"] == "Original (Copy)"
-    assert data["subject"] == "Test Subject"
-    assert data["id"] != template_id
-    assert len(data["content"]) == 1
-
-
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

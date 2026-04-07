@@ -50,10 +50,6 @@ export const api = {
     return request<void>(`${BASE}/${id}`, { method: 'DELETE' })
   },
 
-  duplicateTemplate(id: string): Promise<Template> {
-    return request<Template>(`${BASE}/${id}/duplicate`, { method: 'POST' })
-  },
-
   getHtml(id: string): Promise<string> {
     return fetch(`${BASE}/${id}/html`).then((r) => {
       if (!r.ok) throw new Error(`API error: ${r.status}`)

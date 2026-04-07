@@ -34,26 +34,10 @@
 .home-header {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-end;
   gap: 1.25rem;
   margin-bottom: 1.75rem;
-}
-
-.home-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-text, #232426);
-  margin: 0 0 0.35rem;
-  letter-spacing: -0.02em;
-}
-
-.home-subtitle {
-  margin: 0;
-  max-width: 36rem;
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  color: var(--color-text-secondary, #5c5a57);
 }
 
 .home-header-actions {

@@ -15,12 +15,10 @@ function formatDate(iso: string): string {
 function TemplateCard({
   template,
   onEdit,
-  onDuplicate,
   onDelete,
 }: {
   template: Template
   onEdit: () => void
-  onDuplicate: () => void
   onDelete: () => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -79,14 +77,6 @@ function TemplateCard({
                   Edit
                 </button>
                 <button
-                  onClick={() => {
-                    setMenuOpen(false)
-                    onDuplicate()
-                  }}
-                >
-                  Duplicate
-                </button>
-                <button
                   className="danger"
                   onClick={() => {
                     setMenuOpen(false)
@@ -109,8 +99,7 @@ function TemplateCard({
 }
 
 export function TemplateList() {
-  const { templates, loading, error, createTemplate, deleteTemplate, duplicateTemplate } =
-    useTemplates()
+  const { templates, loading, error, createTemplate, deleteTemplate } = useTemplates()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
 
@@ -203,7 +192,6 @@ export function TemplateList() {
               key={template.id}
               template={template}
               onEdit={() => navigate(`/templates/${template.id}`)}
-              onDuplicate={() => duplicateTemplate(template.id)}
               onDelete={() => handleDelete(template.id)}
             />
           ))}

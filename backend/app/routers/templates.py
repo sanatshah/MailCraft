@@ -128,41 +128,6 @@ async def delete_template(template_id: str) -> None:
         conn.close()
 
 
-@router.post("/{template_id}/duplicate", response_model=TemplateResponse, status_code=201)
-async def duplicate_template(template_id: str) -> dict:
-    conn = get_connection()
-    try:
-        row = conn.execute(
-            "SELECT * FROM templates WHERE id = ?", (template_id,)
-        ).fetchone()
-        if row is None:
-            raise HTTPException(status_code=404, detail="Template not found")
-
-        original = row_to_dict(row)
-        new_id = str(uuid.uuid4())
-        now = _now()
-        conn.execute(
-            """INSERT INTO templates (id, name, subject, content, preview_text, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (
-                new_id,
-                f"{original['name']} (Copy)",
-                original["subject"],
-                json.dumps(original["content"]),
-                original["preview_text"],
-                now,
-                now,
-            ),
-        )
-        conn.commit()
-        new_row = conn.execute(
-            "SELECT * FROM templates WHERE id = ?", (new_id,)
-        ).fetchone()
-        return row_to_dict(new_row)
-    finally:
-        conn.close()
-
-
 # ---------------------------------------------------------------------------
 # HTML Export
 # ---------------------------------------------------------------------------

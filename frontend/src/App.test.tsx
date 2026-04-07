@@ -92,8 +92,13 @@ function setupFetch(options: {
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
+      const method =
+        init?.method?.toUpperCase() ??
+        (input instanceof Request
+            ? input.method.toUpperCase()
+            : 'GET')
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
       }
@@ -103,8 +108,56 @@ function setupFetch(options: {
       if (path.startsWith('/api/dashboard/top-templates')) {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
-      if (path === '/api/templates') {
+      if (path === '/api/templates' && method === 'GET') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path.match(/^\/api\/templates\/[^/]+$/) && method === 'GET') {
+        const id = path.split('/').pop() ?? 't1'
+        const isCopy = id === 't-copy'
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id,
+              name: isCopy ? 'Copy of Welcome Email' : 'Welcome Email',
+              subject: 'Hello',
+              content: [],
+              preview_text: '',
+              created_at: '2026-04-01T00:00:00+00:00',
+              updated_at: '2026-04-01T00:00:00+00:00',
+            }),
+          ),
+        )
+      }
+      if (path.match(/^\/api\/templates\/[^/]+$/) && method === 'PUT') {
+        const id = path.split('/').pop() ?? 't1'
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id,
+              name: 'Welcome Email',
+              subject: 'Hello',
+              content: [],
+              preview_text: '',
+              created_at: '2026-04-01T00:00:00+00:00',
+              updated_at: '2026-04-01T00:00:00+00:00',
+            }),
+          ),
+        )
+      }
+      if (path.match(/^\/api\/templates\/[^/]+\/duplicate$/) && method === 'POST') {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id: 't-copy',
+              name: 'Copy of Welcome Email',
+              subject: 'Hello',
+              content: [],
+              preview_text: '',
+              created_at: '2026-04-01T00:00:00+00:00',
+              updated_at: '2026-04-01T00:00:00+00:00',
+            }),
+          ),
+        )
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -186,5 +239,65 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('duplicates a template from list actions and shows confirmation', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [
+        {
+          id: 't1',
+          name: 'Welcome Email',
+          subject: 'Subject',
+          content: [],
+          preview_text: '',
+          created_at: '2026-04-01T00:00:00+00:00',
+          updated_at: '2026-04-01T00:00:00+00:00',
+        },
+      ],
+    })
+    render(<App />)
+
+    const templatesLink = screen.getByRole('link', { name: 'Templates' })
+    fireEvent.click(templatesLink)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Template actions' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Created "Copy of Welcome Email"')).toBeInTheDocument()
+    })
+  })
+
+  it('duplicates from editor toolbar and navigates to duplicated template', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [
+        {
+          id: 't1',
+          name: 'Welcome Email',
+          subject: 'Subject',
+          content: [],
+          preview_text: '',
+          created_at: '2026-04-01T00:00:00+00:00',
+          updated_at: '2026-04-01T00:00:00+00:00',
+        },
+      ],
+    })
+    window.history.pushState({}, '', '/templates/t1')
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Copy of Welcome Email')).toBeInTheDocument()
+    })
   })
 })

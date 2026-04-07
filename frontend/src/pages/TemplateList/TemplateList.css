@@ -94,6 +94,18 @@
   white-space: nowrap;
 }
 
+.template-list-notice {
+  margin-bottom: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.template-list-action-error {
+  margin-bottom: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
 /* Grid */
 .template-grid {
   display: grid;

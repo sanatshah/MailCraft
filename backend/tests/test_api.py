@@ -137,6 +137,51 @@ def test_delete_template_not_found():
     assert response.status_code == 404
 
 
+def test_duplicate_template():
+    payload = {
+        "name": "Welcome Template",
+        "subject": "Welcome aboard",
+        "content": [
+            {"id": "b1", "type": "text", "properties": {"content": "Hello there"}}
+        ],
+        "preview_text": "Welcome preview",
+    }
+    source = client.post("/api/templates", json=payload).json()
+    template_id = source["id"]
+
+    response = client.post(f"/api/templates/{template_id}/duplicate")
+    assert response.status_code == 201
+    duplicate = response.json()
+    assert duplicate["id"] != template_id
+    assert duplicate["name"] == "Copy of Welcome Template"
+    assert duplicate["subject"] == source["subject"]
+    assert duplicate["content"] == source["content"]
+    assert duplicate["preview_text"] == source["preview_text"]
+
+    all_templates = client.get("/api/templates").json()
+    assert len(all_templates) == 2
+
+
+def test_duplicate_template_uses_incrementing_suffix():
+    source_id = client.post(
+        "/api/templates",
+        json={"name": "Promo", "subject": "Sale now"},
+    ).json()["id"]
+
+    first = client.post(f"/api/templates/{source_id}/duplicate")
+    second = client.post(f"/api/templates/{source_id}/duplicate")
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert first.json()["name"] == "Copy of Promo"
+    assert second.json()["name"] == "Copy of Promo (2)"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

@@ -137,6 +137,83 @@ def test_delete_template_not_found():
     assert response.status_code == 404
 
 
+def test_duplicate_template_creates_independent_copy():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Spring Campaign",
+            "subject": "Fresh offers",
+            "preview_text": "Save big this week",
+            "content": [
+                {
+                    "id": "b1",
+                    "type": "text",
+                    "properties": {"content": "Original body"},
+                }
+            ],
+        },
+    )
+    source_id = create_resp.json()["id"]
+
+    duplicate_resp = client.post(f"/api/templates/{source_id}/duplicate")
+    assert duplicate_resp.status_code == 201
+    duplicate = duplicate_resp.json()
+
+    assert duplicate["id"] != source_id
+    assert duplicate["name"] == "Copy of Spring Campaign"
+    assert duplicate["subject"] == "Fresh offers"
+    assert duplicate["preview_text"] == "Save big this week"
+    assert duplicate["content"] == [
+        {"id": "b1", "type": "text", "properties": {"content": "Original body"}}
+    ]
+
+    update_resp = client.put(
+        f"/api/templates/{duplicate['id']}",
+        json={
+            "subject": "Updated copy subject",
+            "preview_text": "Updated copy preview",
+            "content": [
+                {
+                    "id": "b2",
+                    "type": "text",
+                    "properties": {"content": "Updated copy body"},
+                }
+            ],
+        },
+    )
+    assert update_resp.status_code == 200
+
+    original_after = client.get(f"/api/templates/{source_id}")
+    assert original_after.status_code == 200
+    original_data = original_after.json()
+    assert original_data["subject"] == "Fresh offers"
+    assert original_data["preview_text"] == "Save big this week"
+    assert original_data["content"] == [
+        {"id": "b1", "type": "text", "properties": {"content": "Original body"}}
+    ]
+
+
+def test_duplicate_template_name_increments():
+    source = client.post("/api/templates", json={"name": "Newsletter"}).json()
+    source_id = source["id"]
+
+    first = client.post(f"/api/templates/{source_id}/duplicate")
+    second = client.post(f"/api/templates/{source_id}/duplicate")
+    third = client.post(f"/api/templates/{source_id}/duplicate")
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert third.status_code == 201
+    assert first.json()["name"] == "Copy of Newsletter"
+    assert second.json()["name"] == "Copy of Newsletter (2)"
+    assert third.json()["name"] == "Copy of Newsletter (3)"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

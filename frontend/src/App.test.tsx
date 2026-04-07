@@ -187,4 +187,168 @@ describe('App', () => {
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
   })
+
+  it('duplicates a template from list actions and shows success feedback', async () => {
+    const templatesList = [
+      {
+        id: 't1',
+        name: 'Spring Promo',
+        subject: 'Sale starts now',
+        content: [{ id: 'b1', type: 'text', properties: { content: 'Body' } }],
+        preview_text: 'Preview',
+        created_at: '2026-04-07T00:00:00+00:00',
+        updated_at: '2026-04-07T00:00:00+00:00',
+      },
+    ]
+
+    vi.unstubAllGlobals()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const path = pathnameFrom(input)
+        if (path.startsWith('/api/dashboard/overview')) {
+          return Promise.resolve(new Response(JSON.stringify(emptyOverview)))
+        }
+        if (path.startsWith('/api/dashboard/trends')) {
+          return Promise.resolve(new Response(JSON.stringify({ period_days: 7, series: [] })))
+        }
+        if (path.startsWith('/api/dashboard/top-templates')) {
+          return Promise.resolve(new Response(JSON.stringify({ period_days: 7, templates: [] })))
+        }
+        if (path === '/api/templates' && (!init || init.method === undefined)) {
+          return Promise.resolve(new Response(JSON.stringify(templatesList)))
+        }
+        if (path === '/api/templates/t1/duplicate' && init?.method === 'POST') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 't2',
+                name: 'Copy of Spring Promo',
+                subject: 'Sale starts now',
+                content: [{ id: 'b1', type: 'text', properties: { content: 'Body' } }],
+                preview_text: 'Preview',
+                created_at: '2026-04-07T00:01:00+00:00',
+                updated_at: '2026-04-07T00:01:00+00:00',
+              }),
+            ),
+          )
+        }
+        return Promise.resolve(new Response('not found', { status: 404 }))
+      }),
+    )
+
+    render(<App />)
+    const templatesLink = screen.getByRole('link', { name: 'Templates' })
+    fireEvent.click(templatesLink)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    const actionButtons = screen.getAllByLabelText('Template actions')
+    fireEvent.click(actionButtons[0])
+    fireEvent.click(screen.getByText('Duplicate'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-duplicate-success')).toBeInTheDocument()
+    })
+    expect(screen.getByText('Template duplicated: Copy of Spring Promo')).toBeInTheDocument()
+  })
+
+  it('duplicates from editor toolbar and navigates to copied template', async () => {
+    vi.unstubAllGlobals()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const path = pathnameFrom(input)
+        if (path.startsWith('/api/dashboard/overview')) {
+          return Promise.resolve(new Response(JSON.stringify(emptyOverview)))
+        }
+        if (path.startsWith('/api/dashboard/trends')) {
+          return Promise.resolve(new Response(JSON.stringify({ period_days: 7, series: [] })))
+        }
+        if (path.startsWith('/api/dashboard/top-templates')) {
+          return Promise.resolve(new Response(JSON.stringify({ period_days: 7, templates: [] })))
+        }
+        if (path === '/api/templates' && (!init || init.method === undefined)) {
+          return Promise.resolve(new Response(JSON.stringify([])))
+        }
+        if (path === '/api/templates/t1' && (!init || init.method === undefined)) {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 't1',
+                name: 'Welcome',
+                subject: 'Hello',
+                content: [],
+                preview_text: '',
+                created_at: '2026-04-07T00:00:00+00:00',
+                updated_at: '2026-04-07T00:00:00+00:00',
+              }),
+            ),
+          )
+        }
+        if (path === '/api/templates/t1' && init?.method === 'PUT') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 't1',
+                name: 'Welcome',
+                subject: 'Hello',
+                content: [],
+                preview_text: '',
+                created_at: '2026-04-07T00:00:00+00:00',
+                updated_at: '2026-04-07T00:00:01+00:00',
+              }),
+            ),
+          )
+        }
+        if (path === '/api/templates/t1/duplicate' && init?.method === 'POST') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 't2',
+                name: 'Copy of Welcome',
+                subject: 'Hello',
+                content: [],
+                preview_text: '',
+                created_at: '2026-04-07T00:00:02+00:00',
+                updated_at: '2026-04-07T00:00:02+00:00',
+              }),
+            ),
+          )
+        }
+        if (path === '/api/templates/t2' && (!init || init.method === undefined)) {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 't2',
+                name: 'Copy of Welcome',
+                subject: 'Hello',
+                content: [],
+                preview_text: '',
+                created_at: '2026-04-07T00:00:02+00:00',
+                updated_at: '2026-04-07T00:00:02+00:00',
+              }),
+            ),
+          )
+        }
+        return Promise.resolve(new Response('not found', { status: 404 }))
+      }),
+    )
+
+    window.history.pushState({}, '', '/templates/t1')
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+
+    const duplicateButton = screen.getByRole('button', { name: 'Duplicate' })
+    fireEvent.click(duplicateButton)
+
+    await waitFor(() => {
+      expect(window.location.pathname).toBe('/templates/t2')
+    })
+  })
 })

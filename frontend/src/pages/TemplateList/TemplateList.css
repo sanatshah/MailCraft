@@ -51,6 +51,7 @@
   justify-content: space-between;
   margin-bottom: var(--space-lg);
   gap: var(--space-md);
+  flex-wrap: wrap;
 }
 
 .search-input-wrapper {
@@ -92,6 +93,20 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   white-space: nowrap;
+}
+
+.template-list-feedback {
+  width: 100%;
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-sm);
+}
+
+.template-list-feedback.success {
+  color: #0f8a4b;
+}
+
+.template-list-feedback.error {
+  color: var(--color-danger);
 }
 
 /* Grid */

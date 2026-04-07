@@ -91,6 +91,15 @@
   flex-shrink: 0;
 }
 
+.toolbar-error {
+  color: var(--color-danger);
+  font-size: var(--font-size-xs);
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .save-indicator {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);

@@ -17,6 +17,19 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _next_copy_name(original_name: str, existing_names: set[str]) -> str:
+    base_name = f"{original_name} (Copy)"
+    if base_name not in existing_names:
+        return base_name
+
+    copy_index = 2
+    while True:
+        candidate = f"{original_name} (Copy {copy_index})"
+        if candidate not in existing_names:
+            return candidate
+        copy_index += 1
+
+
 # ---------------------------------------------------------------------------
 # CRUD
 # ---------------------------------------------------------------------------
@@ -139,6 +152,8 @@ async def duplicate_template(template_id: str) -> dict:
             raise HTTPException(status_code=404, detail="Template not found")
 
         original = row_to_dict(row)
+        name_rows = conn.execute("SELECT name FROM templates").fetchall()
+        existing_names = {name_row["name"] for name_row in name_rows}
         new_id = str(uuid.uuid4())
         now = _now()
         conn.execute(
@@ -146,7 +161,7 @@ async def duplicate_template(template_id: str) -> dict:
                VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (
                 new_id,
-                f"{original['name']} (Copy)",
+                _next_copy_name(original["name"], existing_names),
                 original["subject"],
                 json.dumps(original["content"]),
                 original["preview_text"],

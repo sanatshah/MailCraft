@@ -153,8 +153,21 @@ def test_duplicate_template():
     data = response.json()
     assert data["name"] == "Original (Copy)"
     assert data["subject"] == "Test Subject"
+    assert data["preview_text"] == ""
     assert data["id"] != template_id
-    assert len(data["content"]) == 1
+    assert data["content"] == [{"id": "b1", "type": "text", "properties": {"content": "Hi"}}]
+
+    second_response = client.post(f"/api/templates/{template_id}/duplicate")
+    assert second_response.status_code == 201
+    second_data = second_response.json()
+    assert second_data["name"] == "Original (Copy 2)"
+    assert second_data["subject"] == "Test Subject"
+    assert second_data["content"] == data["content"]
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
 
 
 def test_export_html():

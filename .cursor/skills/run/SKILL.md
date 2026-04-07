@@ -1,5 +1,5 @@
 ---
-name: mailcraft-run-local
+name: run-local
 description: Starts the Mailcraft stack locally—FastAPI backend on port 8002 and Vite React frontend on port 5174 with /api proxied to the backend. Use when the user asks to run, start, bring up, or develop the mailcraft app, dev servers, or local environment.
 ---
 

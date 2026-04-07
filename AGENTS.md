@@ -10,10 +10,12 @@ Mailcraft is a two-service monorepo (no monorepo tooling): a **FastAPI backend**
 
 See `README.md` "Run locally" for standard commands. Key points:
 
-| Service | Directory | Port | Command |
-|---------|-----------|------|---------|
-| Backend | `backend/` | 8002 | `source .venv/bin/activate && uvicorn app.main:app --reload --host 127.0.0.1 --port 8002` |
-| Frontend | `frontend/` | 5174 | `npm run dev` |
+
+| Service  | Directory   | Port | Command                                                                                   |
+| -------- | ----------- | ---- | ----------------------------------------------------------------------------------------- |
+| Backend  | `backend/`  | 8002 | `source .venv/bin/activate && uvicorn app.main:app --reload --host 127.0.0.1 --port 8002` |
+| Frontend | `frontend/` | 5174 | `npm run dev`                                                                             |
+
 
 The frontend proxies `/api` to `http://localhost:8002` via `vite.config.ts`. If the backend port changes, update the proxy target.
 
@@ -21,12 +23,14 @@ On first start, the backend auto-creates `backend/email_templates.db` and seeds 
 
 ### Lint / Test / Build
 
-| Check | Directory | Command |
-|-------|-----------|---------|
-| Backend tests | `backend/` | `source .venv/bin/activate && pytest` |
-| Frontend lint | `frontend/` | `npx eslint .` |
-| Frontend tests | `frontend/` | `npm run test` |
-| Frontend build | `frontend/` | `npm run build` |
+
+| Check          | Directory   | Command                               |
+| -------------- | ----------- | ------------------------------------- |
+| Backend tests  | `backend/`  | `source .venv/bin/activate && pytest` |
+| Frontend lint  | `frontend/` | `npx eslint .`                        |
+| Frontend tests | `frontend/` | `npm run test`                        |
+| Frontend build | `frontend/` | `npm run build`                       |
+
 
 ### Gotchas
 

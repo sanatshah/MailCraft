@@ -155,6 +155,65 @@ def test_duplicate_template():
     assert data["subject"] == "Test Subject"
     assert data["id"] != template_id
     assert len(data["content"]) == 1
+    assert data["preview_text"] == ""
+
+
+def test_duplicate_template_uses_unique_incrementing_copy_names():
+    create_resp = client.post("/api/templates", json={"name": "Newsletter"})
+    template_id = create_resp.json()["id"]
+
+    first_duplicate = client.post(f"/api/templates/{template_id}/duplicate")
+    second_duplicate = client.post(f"/api/templates/{template_id}/duplicate")
+    third_duplicate = client.post(f"/api/templates/{template_id}/duplicate")
+
+    assert first_duplicate.status_code == 201
+    assert second_duplicate.status_code == 201
+    assert third_duplicate.status_code == 201
+    assert first_duplicate.json()["name"] == "Newsletter (Copy)"
+    assert second_duplicate.json()["name"] == "Newsletter (Copy 2)"
+    assert third_duplicate.json()["name"] == "Newsletter (Copy 3)"
+
+
+def test_duplicate_template_is_independent_from_original():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Original",
+            "subject": "Original Subject",
+            "content": [{"id": "b1", "type": "text", "properties": {"content": "Version 1"}}],
+            "preview_text": "Original preview",
+        },
+    )
+    template_id = create_resp.json()["id"]
+
+    duplicate_resp = client.post(f"/api/templates/{template_id}/duplicate")
+    assert duplicate_resp.status_code == 201
+    duplicate_id = duplicate_resp.json()["id"]
+
+    update_duplicate_resp = client.put(
+        f"/api/templates/{duplicate_id}",
+        json={
+            "name": "Edited Copy",
+            "subject": "Copy Subject",
+            "content": [{"id": "b1", "type": "text", "properties": {"content": "Version 2"}}],
+            "preview_text": "Copy preview",
+        },
+    )
+    assert update_duplicate_resp.status_code == 200
+
+    original_after = client.get(f"/api/templates/{template_id}")
+    duplicate_after = client.get(f"/api/templates/{duplicate_id}")
+
+    assert original_after.status_code == 200
+    assert duplicate_after.status_code == 200
+    assert original_after.json()["name"] == "Original"
+    assert original_after.json()["subject"] == "Original Subject"
+    assert original_after.json()["preview_text"] == "Original preview"
+    assert original_after.json()["content"][0]["properties"]["content"] == "Version 1"
+    assert duplicate_after.json()["name"] == "Edited Copy"
+    assert duplicate_after.json()["subject"] == "Copy Subject"
+    assert duplicate_after.json()["preview_text"] == "Copy preview"
+    assert duplicate_after.json()["content"][0]["properties"]["content"] == "Version 2"
 
 
 def test_export_html():

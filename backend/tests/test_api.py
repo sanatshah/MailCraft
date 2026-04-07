@@ -144,6 +144,7 @@ def test_duplicate_template():
             "name": "Original",
             "subject": "Test Subject",
             "content": [{"id": "b1", "type": "text", "properties": {"content": "Hi"}}],
+            "preview_text": "Original preview",
         },
     )
     template_id = create_resp.json()["id"]
@@ -155,6 +156,68 @@ def test_duplicate_template():
     assert data["subject"] == "Test Subject"
     assert data["id"] != template_id
     assert len(data["content"]) == 1
+    assert data["preview_text"] == "Original preview"
+
+
+def test_duplicate_template_assigns_incrementing_copy_names():
+    create_resp = client.post("/api/templates", json={"name": "Original"})
+    template_id = create_resp.json()["id"]
+
+    first = client.post(f"/api/templates/{template_id}/duplicate")
+    second = client.post(f"/api/templates/{template_id}/duplicate")
+    third = client.post(f"/api/templates/{template_id}/duplicate")
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert third.status_code == 201
+
+    assert first.json()["name"] == "Original (Copy)"
+    assert second.json()["name"] == "Original (Copy 2)"
+    assert third.json()["name"] == "Original (Copy 3)"
+
+
+def test_duplicate_template_is_independent_from_original():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Original",
+            "subject": "Subject V1",
+            "content": [{"id": "b1", "type": "text", "properties": {"content": "V1"}}],
+            "preview_text": "Preview V1",
+        },
+    )
+    template_id = create_resp.json()["id"]
+
+    duplicate_resp = client.post(f"/api/templates/{template_id}/duplicate")
+    assert duplicate_resp.status_code == 201
+    duplicate_id = duplicate_resp.json()["id"]
+
+    update_duplicate = client.put(
+        f"/api/templates/{duplicate_id}",
+        json={
+            "subject": "Duplicate Subject",
+            "content": [{"id": "b1", "type": "text", "properties": {"content": "V2"}}],
+            "preview_text": "Duplicate preview",
+        },
+    )
+    assert update_duplicate.status_code == 200
+
+    original = client.get(f"/api/templates/{template_id}")
+    duplicate = client.get(f"/api/templates/{duplicate_id}")
+
+    assert original.status_code == 200
+    assert duplicate.status_code == 200
+    assert original.json()["subject"] == "Subject V1"
+    assert original.json()["content"] == [
+        {"id": "b1", "type": "text", "properties": {"content": "V1"}}
+    ]
+    assert original.json()["preview_text"] == "Preview V1"
+
+    assert duplicate.json()["subject"] == "Duplicate Subject"
+    assert duplicate.json()["content"] == [
+        {"id": "b1", "type": "text", "properties": {"content": "V2"}}
+    ]
+    assert duplicate.json()["preview_text"] == "Duplicate preview"
 
 
 def test_export_html():

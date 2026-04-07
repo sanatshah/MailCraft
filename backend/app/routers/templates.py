@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import uuid
 from datetime import datetime, timezone
 
@@ -15,6 +16,31 @@ router = APIRouter(prefix="/api/templates", tags=["templates"])
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _next_duplicate_name(conn, original_name: str) -> str:
+    """Return the next available duplicate name for a template."""
+    rows = conn.execute(
+        "SELECT name FROM templates WHERE name = ? OR name LIKE ?",
+        (f"{original_name} (Copy)", f"{original_name} (Copy %"),
+    ).fetchall()
+    pattern = re.compile(rf"^{re.escape(original_name)} \(Copy(?: (\d+))?\)$")
+    used_numbers: set[int] = set()
+    for row in rows:
+        name = row["name"]
+        match = pattern.match(name)
+        if not match:
+            continue
+        number = match.group(1)
+        used_numbers.add(1 if number is None else int(number))
+
+    next_number = 1
+    while next_number in used_numbers:
+        next_number += 1
+
+    if next_number == 1:
+        return f"{original_name} (Copy)"
+    return f"{original_name} (Copy {next_number})"
 
 
 # ---------------------------------------------------------------------------
@@ -141,12 +167,13 @@ async def duplicate_template(template_id: str) -> dict:
         original = row_to_dict(row)
         new_id = str(uuid.uuid4())
         now = _now()
+        duplicate_name = _next_duplicate_name(conn, original["name"])
         conn.execute(
             """INSERT INTO templates (id, name, subject, content, preview_text, created_at, updated_at)
                VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (
                 new_id,
-                f"{original['name']} (Copy)",
+                duplicate_name,
                 original["subject"],
                 json.dumps(original["content"]),
                 original["preview_text"],

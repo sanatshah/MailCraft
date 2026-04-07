@@ -154,10 +154,12 @@
 .sidebar--collapsed .sidebar-nav-item {
   justify-content: center;
   padding-inline: var(--space-sm);
+  gap: 0;
 }
 
 .sidebar--collapsed .sidebar-toggle {
   margin-top: var(--space-xs);
+  padding: 0;
 }
 
 .sidebar--collapsed .sidebar-nav-item.active {

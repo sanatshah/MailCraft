@@ -225,7 +225,9 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
-    expect(screen.getByText('Email Templates')).toBeInTheDocument()
+    expect(
+      screen.getByText('Create and manage your email templates'),
+    ).toBeInTheDocument()
   })
 
   it('navigates to templates list from the collapsed sidebar', async () => {

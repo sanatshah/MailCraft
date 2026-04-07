@@ -95,6 +95,12 @@ export function Home() {
   return (
     <div className="home-dashboard" data-testid="home-dashboard">
       <header className="home-header">
+        <div className="home-header-copy">
+          <h1 className="home-page-title">Dashboard</h1>
+          <p className="home-page-subtitle">
+            Track email delivery health, engagement, and failures in one place.
+          </p>
+        </div>
         <div className="home-header-actions">
           <label className="home-period-label" htmlFor="home-period">
             Period
@@ -122,9 +128,9 @@ export function Home() {
         <div className="home-empty-banner" data-testid="home-empty-banner">
           <h2>No email activity yet</h2>
           <p>
-            When your send pipeline posts events to{' '}
-            <code className="home-code">POST /api/events/message</code> or recipients load the open
-            tracking pixel, metrics will appear here.
+            We could not find events in the last {days} days. When your send pipeline posts events
+            to <code className="home-code">POST /api/events/message</code> or recipients load the
+            open tracking pixel, dashboard metrics will appear here.
           </p>
         </div>
       )}
@@ -164,96 +170,143 @@ export function Home() {
         </section>
       )}
 
-      {trends && trends.series.length > 0 && (
+      {trends && (
         <section className="home-section" aria-labelledby="home-trends-heading">
           <h2 id="home-trends-heading" className="home-section-title">
             Activity by day
           </h2>
-          <div className="home-trend-chart" data-testid="home-trend-chart">
-            <div className="home-trend-legend">
-              <span>
-                <i className="home-trend-dot home-trend-dot--sent" /> Sent
-              </span>
-              <span>
-                <i className="home-trend-dot home-trend-dot--failed" /> Failed
-              </span>
-              <span>
-                <i className="home-trend-dot home-trend-dot--opens" /> Opens
-              </span>
-            </div>
-            <div className="home-trend-bars">
-              {trends.series.map((day) => {
-                const hSent = trendMax ? (day.sent / trendMax) * 100 : 0
-                const hFailed = trendMax ? (day.failed / trendMax) * 100 : 0
-                const hOpens = trendMax ? (day.opens / trendMax) * 100 : 0
-                return (
-                  <div key={day.date} className="home-trend-col" title={day.date}>
-                    <div className="home-trend-stack">
-                      <div
-                        className="home-trend-seg home-trend-seg--opens"
-                        style={{ height: `${hOpens}%` }}
-                      />
-                      <div
-                        className="home-trend-seg home-trend-seg--failed"
-                        style={{ height: `${hFailed}%` }}
-                      />
-                      <div
-                        className="home-trend-seg home-trend-seg--sent"
-                        style={{ height: `${hSent}%` }}
-                      />
-                    </div>
-                    <span className="home-trend-day">
-                      {new Date(day.date + 'T12:00:00').toLocaleDateString(undefined, {
-                        weekday: 'narrow',
-                        day: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+          {trends.series.length > 0 ? (
+            <>
+              <div className="home-trend-chart" data-testid="home-trend-chart" aria-hidden="true">
+                <div className="home-trend-legend">
+                  <span>
+                    <i className="home-trend-dot home-trend-dot--sent" /> Sent
+                  </span>
+                  <span>
+                    <i className="home-trend-dot home-trend-dot--failed" /> Failed
+                  </span>
+                  <span>
+                    <i className="home-trend-dot home-trend-dot--opens" /> Opens
+                  </span>
+                </div>
+                <div className="home-trend-bars">
+                  {trends.series.map((day) => {
+                    const hSent = trendMax ? (day.sent / trendMax) * 100 : 0
+                    const hFailed = trendMax ? (day.failed / trendMax) * 100 : 0
+                    const hOpens = trendMax ? (day.opens / trendMax) * 100 : 0
+                    return (
+                      <div key={day.date} className="home-trend-col" title={day.date}>
+                        <div className="home-trend-stack">
+                          <div
+                            className="home-trend-seg home-trend-seg--opens"
+                            style={{ height: `${hOpens}%` }}
+                          />
+                          <div
+                            className="home-trend-seg home-trend-seg--failed"
+                            style={{ height: `${hFailed}%` }}
+                          />
+                          <div
+                            className="home-trend-seg home-trend-seg--sent"
+                            style={{ height: `${hSent}%` }}
+                          />
+                        </div>
+                        <span className="home-trend-day">
+                          {new Date(day.date + 'T12:00:00').toLocaleDateString(undefined, {
+                            weekday: 'narrow',
+                            day: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <table className="home-trend-table sr-only" data-testid="home-trend-table">
+                <caption>Daily activity totals for the last {days} days</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Sent</th>
+                    <th scope="col">Failed</th>
+                    <th scope="col">Opens</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {trends.series.map((day) => (
+                    <tr key={`trend-table-${day.date}`}>
+                      <th scope="row">
+                        {new Date(`${day.date}T12:00:00`).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </th>
+                      <td>{day.sent}</td>
+                      <td>{day.failed}</td>
+                      <td>{day.opens}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          ) : (
+            <p className="home-empty-section" data-testid="home-trend-empty">
+              No daily activity has been recorded for the selected period.
+            </p>
+          )}
         </section>
       )}
 
       <div className="home-two-col">
-        {topTemplates && topTemplates.templates.length > 0 && (
+        {topTemplates && (
           <section className="home-section" aria-labelledby="home-top-heading">
             <h2 id="home-top-heading" className="home-section-title">
               Top templates
             </h2>
-            <ul className="home-top-list" data-testid="home-top-templates">
-              {topTemplates.templates.map((t) => (
-                <li key={t.template_id} className="home-top-row">
-                  <span className="home-top-name">{t.template_name}</span>
-                  <span className="home-top-stats">
-                    {t.send_count} sends · {t.open_count} opens
-                  </span>
-                </li>
-              ))}
-            </ul>
+            {topTemplates.templates.length > 0 ? (
+              <ul className="home-top-list" data-testid="home-top-templates">
+                {topTemplates.templates.map((t) => (
+                  <li key={t.template_id} className="home-top-row">
+                    <span className="home-top-name">{t.template_name}</span>
+                    <span className="home-top-stats">
+                      {t.send_count} sends · {t.open_count} opens
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="home-empty-section" data-testid="home-top-empty">
+                No template activity yet. Send emails with templates to populate this ranking.
+              </p>
+            )}
           </section>
         )}
 
-        {overviewData && overviewData.recent_failures.length > 0 && (
+        {overviewData && (
           <section className="home-section" aria-labelledby="home-fail-heading">
             <h2 id="home-fail-heading" className="home-section-title">
               Recent failures
             </h2>
-            <ul className="home-fail-list" data-testid="home-recent-failures">
-              {overviewData.recent_failures.map((f) => (
-                <li key={f.message_id} className="home-fail-row">
-                  <div className="home-fail-main">
-                    <span className="home-fail-recipient">{f.recipient}</span>
-                    {f.subject && <span className="home-fail-subject">{f.subject}</span>}
-                  </div>
-                  <div className="home-fail-meta">
-                    <span className="home-fail-reason">{f.failure_reason || 'Unknown error'}</span>
-                    <span className="home-fail-time">{formatShortDate(f.failed_at)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {overviewData.recent_failures.length > 0 ? (
+              <ul className="home-fail-list" data-testid="home-recent-failures">
+                {overviewData.recent_failures.map((f) => (
+                  <li key={f.message_id} className="home-fail-row">
+                    <div className="home-fail-main">
+                      <span className="home-fail-recipient">{f.recipient}</span>
+                      {f.subject && <span className="home-fail-subject">{f.subject}</span>}
+                    </div>
+                    <div className="home-fail-meta">
+                      <span className="home-fail-reason">{f.failure_reason || 'Unknown error'}</span>
+                      <span className="home-fail-time">{formatShortDate(f.failed_at)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="home-empty-section" data-testid="home-fail-empty">
+                No failed deliveries were recorded in the selected period.
+              </p>
+            )}
           </section>
         )}
       </div>

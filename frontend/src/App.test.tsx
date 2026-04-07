@@ -84,11 +84,23 @@ function setupFetch(options: {
   trends?: typeof sampleTrends
   top?: typeof sampleTop
   templatesList?: unknown[]
+  duplicateResponse?: unknown
+  duplicateStatus?: number
 } = {}) {
   const overview = options.overview ?? emptyOverview
   const trends = options.trends ?? { period_days: 7, series: [] }
   const top = options.top ?? { period_days: 7, templates: [] }
   const templatesList = options.templatesList ?? []
+  const duplicateResponse = options.duplicateResponse ?? {
+    id: 'copy-1',
+    name: 'Copy of Welcome',
+    subject: '',
+    content: [],
+    preview_text: '',
+    created_at: '2026-04-07T00:00:00Z',
+    updated_at: '2026-04-07T00:00:00Z',
+  }
+  const duplicateStatus = options.duplicateStatus ?? 200
 
   vi.stubGlobal(
     'fetch',
@@ -105,6 +117,11 @@ function setupFetch(options: {
       }
       if (path === '/api/templates') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path.startsWith('/api/templates/') && path.endsWith('/duplicate')) {
+        return Promise.resolve(
+          new Response(JSON.stringify(duplicateResponse), { status: duplicateStatus }),
+        )
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -186,5 +203,47 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('duplicates a template from list actions', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [
+        {
+          id: 't1',
+          name: 'Welcome',
+          subject: 'Hello',
+          content: [],
+          preview_text: '',
+          created_at: '2026-04-07T00:00:00Z',
+          updated_at: '2026-04-07T00:00:00Z',
+        },
+      ],
+      duplicateResponse: {
+        id: 't2',
+        name: 'Copy of Welcome',
+        subject: 'Hello',
+        content: [],
+        preview_text: '',
+        created_at: '2026-04-07T00:00:01Z',
+        updated_at: '2026-04-07T00:00:01Z',
+      },
+      duplicateStatus: 201,
+    })
+
+    window.history.pushState({}, '', '/templates')
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByLabelText('Template actions'))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('Duplicated "Copy of Welcome"')
+    })
+    expect(screen.getByText('Copy of Welcome')).toBeInTheDocument()
   })
 })

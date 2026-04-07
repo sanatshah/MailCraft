@@ -114,11 +114,13 @@ function setupFetch(options: {
 afterEach(() => {
   vi.unstubAllGlobals()
   window.localStorage.clear()
+  window.history.pushState({}, '', '/')
   cleanup()
 })
 
 describe('App', () => {
   beforeEach(() => {
+    window.history.pushState({}, '', '/')
     setupFetch()
   })
 

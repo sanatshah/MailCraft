@@ -30,6 +30,14 @@
   align-items: center;
   gap: var(--space-sm);
   min-width: 0;
+  flex-shrink: 0;
+}
+
+.sidebar-logo svg {
+  display: block;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .sidebar-brand {
@@ -136,11 +144,16 @@
 }
 
 .sidebar--collapsed .sidebar-header {
-  padding-inline: var(--space-sm);
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-xs);
 }
 
 .sidebar--collapsed .sidebar-logo {
   gap: 0;
+  width: 100%;
+  justify-content: center;
 }
 
 .sidebar--collapsed .sidebar-brand,

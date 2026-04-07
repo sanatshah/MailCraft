@@ -57,6 +57,14 @@
   background-color: var(--color-sidebar-hover);
 }
 
+.sidebar-toggle-icon {
+  transition: transform var(--transition-fast);
+}
+
+.sidebar-toggle-icon--collapsed {
+  transform: rotate(180deg);
+}
+
 .sidebar--collapsed .sidebar-header {
   padding-left: var(--space-sm);
   padding-right: var(--space-sm);

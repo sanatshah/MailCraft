@@ -141,7 +141,11 @@ describe('App', () => {
       expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
     })
     expect(screen.getByTestId('home-empty-banner')).toBeInTheDocument()
+    expect(screen.getByTestId('home-trend-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('home-top-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('home-fail-empty')).toBeInTheDocument()
     expect(screen.getByText('Manage templates')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeInTheDocument()
   })
 
   it('renders dashboard KPIs when analytics data exists', async () => {
@@ -158,6 +162,7 @@ describe('App', () => {
     expect(screen.getByTestId('home-kpi-failed')).toHaveTextContent('1')
     expect(screen.getByTestId('home-kpi-opens')).toHaveTextContent('5')
     expect(screen.getByTestId('home-trend-chart')).toBeInTheDocument()
+    expect(screen.getByTestId('home-trend-table')).toBeInTheDocument()
     expect(screen.getByTestId('home-top-templates')).toBeInTheDocument()
     expect(screen.getByTestId('home-recent-failures')).toBeInTheDocument()
   })

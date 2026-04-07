@@ -331,3 +331,17 @@
   height: 60vh;
   color: var(--color-danger);
 }
+
+.template-list-feedback {
+  margin-bottom: var(--space-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.template-list-feedback.success {
+  color: #1b7f3b;
+}
+
+.template-list-feedback.error {
+  color: var(--color-danger);
+}

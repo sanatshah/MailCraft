@@ -17,6 +17,24 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _generate_duplicate_name(conn, original_name: str) -> str:
+    base_name = f"{original_name} (Copy)"
+    existing_rows = conn.execute(
+        "SELECT name FROM templates WHERE name = ? OR name LIKE ?",
+        (base_name, f"{original_name} (Copy %"),
+    ).fetchall()
+    existing = {row["name"] for row in existing_rows}
+    if base_name not in existing:
+        return base_name
+
+    copy_idx = 2
+    while True:
+        candidate = f"{original_name} (Copy {copy_idx})"
+        if candidate not in existing:
+            return candidate
+        copy_idx += 1
+
+
 # ---------------------------------------------------------------------------
 # CRUD
 # ---------------------------------------------------------------------------
@@ -124,6 +142,43 @@ async def delete_template(template_id: str) -> None:
             raise HTTPException(status_code=404, detail="Template not found")
         conn.execute("DELETE FROM templates WHERE id = ?", (template_id,))
         conn.commit()
+    finally:
+        conn.close()
+
+
+@router.post("/{template_id}/duplicate", response_model=TemplateResponse, status_code=201)
+async def duplicate_template(template_id: str) -> dict:
+    conn = get_connection()
+    try:
+        source = conn.execute(
+            "SELECT * FROM templates WHERE id = ?", (template_id,)
+        ).fetchone()
+        if source is None:
+            raise HTTPException(status_code=404, detail="Template not found")
+
+        source_template = row_to_dict(source)
+        duplicated_id = str(uuid.uuid4())
+        now = _now()
+        duplicate_name = _generate_duplicate_name(conn, source_template["name"])
+
+        conn.execute(
+            """INSERT INTO templates (id, name, subject, content, preview_text, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                duplicated_id,
+                duplicate_name,
+                source_template["subject"],
+                json.dumps(source_template["content"]),
+                source_template["preview_text"],
+                now,
+                now,
+            ),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM templates WHERE id = ?", (duplicated_id,)
+        ).fetchone()
+        return row_to_dict(row)
     finally:
         conn.close()
 

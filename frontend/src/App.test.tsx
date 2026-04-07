@@ -84,15 +84,21 @@ function setupFetch(options: {
   trends?: typeof sampleTrends
   top?: typeof sampleTop
   templatesList?: unknown[]
+  templateById?: Record<string, unknown>
+  duplicateById?: Record<string, unknown>
+  updateResponseById?: Record<string, unknown>
 } = {}) {
   const overview = options.overview ?? emptyOverview
   const trends = options.trends ?? { period_days: 7, series: [] }
   const top = options.top ?? { period_days: 7, templates: [] }
   const templatesList = options.templatesList ?? []
+  const templateById = options.templateById ?? {}
+  const duplicateById = options.duplicateById ?? {}
+  const updateResponseById = options.updateResponseById ?? {}
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
@@ -105,6 +111,31 @@ function setupFetch(options: {
       }
       if (path === '/api/templates') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path.startsWith('/api/templates/') && path.endsWith('/duplicate')) {
+        const id = path.split('/')[3]
+        const duplicated = duplicateById[id]
+        if (!duplicated) {
+          return Promise.resolve(new Response('not found', { status: 404 }))
+        }
+        return Promise.resolve(new Response(JSON.stringify(duplicated), { status: 201 }))
+      }
+      if (path.startsWith('/api/templates/') && path.endsWith('/html')) {
+        return Promise.resolve(new Response('<html><body>ok</body></html>'))
+      }
+      if (path.startsWith('/api/templates/') && path.split('/').length === 4) {
+        const id = path.split('/')[3]
+        const method = (init?.method ?? 'GET').toUpperCase()
+        if (method === 'GET') {
+          const tpl = templateById[id]
+          if (!tpl) return Promise.resolve(new Response('not found', { status: 404 }))
+          return Promise.resolve(new Response(JSON.stringify(tpl)))
+        }
+        if (method === 'PUT') {
+          const updated = updateResponseById[id] ?? templateById[id]
+          if (!updated) return Promise.resolve(new Response('not found', { status: 404 }))
+          return Promise.resolve(new Response(JSON.stringify(updated)))
+        }
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -186,5 +217,100 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('duplicates a template from list actions', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [
+        {
+          id: 'tpl-1',
+          name: 'Welcome',
+          subject: 'Hello',
+          content: [],
+          preview_text: '',
+          created_at: '2026-04-01T00:00:00Z',
+          updated_at: '2026-04-01T00:00:00Z',
+        },
+      ],
+      duplicateById: {
+        'tpl-1': {
+          id: 'tpl-2',
+          name: 'Welcome (Copy)',
+          subject: 'Hello',
+          content: [],
+          preview_text: '',
+          created_at: '2026-04-01T00:00:00Z',
+          updated_at: '2026-04-01T00:00:00Z',
+        },
+      },
+    })
+    window.history.pushState({}, '', '/templates')
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByLabelText('Template actions'))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+    await waitFor(() => {
+      expect(screen.getByText('Duplicated as "Welcome (Copy)"')).toBeInTheDocument()
+    })
+  })
+
+  it('duplicates from editor and navigates to the copied template', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templateById: {
+        'tpl-1': {
+          id: 'tpl-1',
+          name: 'Original',
+          subject: 'Subject',
+          content: [],
+          preview_text: '',
+          created_at: '2026-04-01T00:00:00Z',
+          updated_at: '2026-04-01T00:00:00Z',
+        },
+        'tpl-2': {
+          id: 'tpl-2',
+          name: 'Original (Copy)',
+          subject: 'Subject',
+          content: [],
+          preview_text: '',
+          created_at: '2026-04-01T00:00:00Z',
+          updated_at: '2026-04-01T00:00:00Z',
+        },
+      },
+      updateResponseById: {
+        'tpl-1': {
+          id: 'tpl-1',
+          name: 'Original',
+          subject: 'Subject',
+          content: [],
+          preview_text: '',
+          created_at: '2026-04-01T00:00:00Z',
+          updated_at: '2026-04-01T00:00:00Z',
+        },
+      },
+      duplicateById: {
+        'tpl-1': {
+          id: 'tpl-2',
+          name: 'Original (Copy)',
+          subject: 'Subject',
+          content: [],
+          preview_text: '',
+          created_at: '2026-04-01T00:00:00Z',
+          updated_at: '2026-04-01T00:00:00Z',
+        },
+      },
+    })
+    window.history.pushState({}, '', '/templates/tpl-1')
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+    await waitFor(() => {
+      expect(window.location.pathname).toBe('/templates/tpl-2')
+    })
   })
 })

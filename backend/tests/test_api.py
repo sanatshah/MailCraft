@@ -137,6 +137,58 @@ def test_delete_template_not_found():
     assert response.status_code == 404
 
 
+def test_duplicate_template_creates_independent_copy():
+    source_payload = {
+        "name": "Launch Campaign",
+        "subject": "Big release",
+        "content": [
+            {"id": "b1", "type": "text", "properties": {"content": "Hello there"}},
+            {"id": "b2", "type": "button", "properties": {"text": "View", "url": "https://example.com"}},
+        ],
+        "preview_text": "Read this first",
+    }
+    create_resp = client.post("/api/templates", json=source_payload)
+    source_id = create_resp.json()["id"]
+
+    duplicate_resp = client.post(f"/api/templates/{source_id}/duplicate")
+    assert duplicate_resp.status_code == 201
+    duplicate = duplicate_resp.json()
+
+    assert duplicate["id"] != source_id
+    assert duplicate["name"] == "Launch Campaign (Copy)"
+    assert duplicate["subject"] == source_payload["subject"]
+    assert duplicate["preview_text"] == source_payload["preview_text"]
+    assert duplicate["content"] == source_payload["content"]
+
+    # Editing the copy must not mutate the original template.
+    client.put(
+        f"/api/templates/{duplicate['id']}",
+        json={"subject": "Edited copy subject"},
+    )
+    original = client.get(f"/api/templates/{source_id}").json()
+    assert original["subject"] == "Big release"
+
+
+def test_duplicate_template_increments_duplicate_names():
+    source_id = client.post("/api/templates", json={"name": "Newsletter"}).json()["id"]
+
+    first = client.post(f"/api/templates/{source_id}/duplicate")
+    second = client.post(f"/api/templates/{source_id}/duplicate")
+    third = client.post(f"/api/templates/{source_id}/duplicate")
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert third.status_code == 201
+    assert first.json()["name"] == "Newsletter (Copy)"
+    assert second.json()["name"] == "Newsletter (Copy 2)"
+    assert third.json()["name"] == "Newsletter (Copy 3)"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

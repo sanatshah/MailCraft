@@ -15,10 +15,12 @@ function formatDate(iso: string): string {
 function TemplateCard({
   template,
   onEdit,
+  onDuplicate,
   onDelete,
 }: {
   template: Template
   onEdit: () => void
+  onDuplicate: () => void
   onDelete: () => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -77,6 +79,14 @@ function TemplateCard({
                   Edit
                 </button>
                 <button
+                  onClick={() => {
+                    setMenuOpen(false)
+                    onDuplicate()
+                  }}
+                >
+                  Duplicate
+                </button>
+                <button
                   className="danger"
                   onClick={() => {
                     setMenuOpen(false)
@@ -99,9 +109,11 @@ function TemplateCard({
 }
 
 export function TemplateList() {
-  const { templates, loading, error, createTemplate, deleteTemplate } = useTemplates()
+  const { templates, loading, error, createTemplate, deleteTemplate, duplicateTemplate } = useTemplates()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [duplicateStatus, setDuplicateStatus] = useState<string | null>(null)
+  const [duplicateError, setDuplicateError] = useState<string | null>(null)
 
   const filtered = templates.filter(
     (t) =>
@@ -117,6 +129,17 @@ export function TemplateList() {
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this template?')) {
       await deleteTemplate(id)
+    }
+  }
+
+  const handleDuplicate = async (id: string) => {
+    try {
+      const duplicated = await duplicateTemplate(id)
+      setDuplicateError(null)
+      setDuplicateStatus(`Duplicated as "${duplicated.name}"`)
+    } catch {
+      setDuplicateStatus(null)
+      setDuplicateError('Failed to duplicate template')
     }
   }
 
@@ -170,6 +193,8 @@ export function TemplateList() {
         </div>
         <span className="template-count">{filtered.length} template{filtered.length !== 1 ? 's' : ''}</span>
       </div>
+      {duplicateStatus && <p className="template-list-feedback success">{duplicateStatus}</p>}
+      {duplicateError && <p className="template-list-feedback error">{duplicateError}</p>}
 
       {filtered.length === 0 ? (
         <div className="template-list-empty">
@@ -192,6 +217,7 @@ export function TemplateList() {
               key={template.id}
               template={template}
               onEdit={() => navigate(`/templates/${template.id}`)}
+              onDuplicate={() => handleDuplicate(template.id)}
               onDelete={() => handleDelete(template.id)}
             />
           ))}

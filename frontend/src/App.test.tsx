@@ -140,7 +140,11 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
     })
+    expect(screen.getByRole('heading', { level: 1, name: 'Home dashboard' })).toBeInTheDocument()
     expect(screen.getByTestId('home-empty-banner')).toBeInTheDocument()
+    expect(screen.getByTestId('home-trend-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('home-top-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('home-fail-empty')).toBeInTheDocument()
     expect(screen.getByText('Manage templates')).toBeInTheDocument()
   })
 
@@ -158,8 +162,22 @@ describe('App', () => {
     expect(screen.getByTestId('home-kpi-failed')).toHaveTextContent('1')
     expect(screen.getByTestId('home-kpi-opens')).toHaveTextContent('5')
     expect(screen.getByTestId('home-trend-chart')).toBeInTheDocument()
+    expect(screen.getByTestId('home-trend-table')).toBeInTheDocument()
     expect(screen.getByTestId('home-top-templates')).toBeInTheDocument()
     expect(screen.getByTestId('home-recent-failures')).toBeInTheDocument()
+  })
+
+  it('keeps period control before manage templates in tab order', async () => {
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+    const periodSelect = screen.getByLabelText('Dashboard period in days')
+    const manageTemplates = screen.getByRole('link', { name: 'Manage templates' })
+
+    expect(
+      periodSelect.compareDocumentPosition(manageTemplates) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
   })
 
   it('shows dashboard error UI when API fails', async () => {

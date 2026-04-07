@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   DndContext,
   DragOverlay,
@@ -23,9 +23,11 @@ import './TemplateEditor.css'
 export function TemplateEditor() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const editor = useTemplateEditor(id)
   const [htmlPreview, setHtmlPreview] = useState<string | null>(null)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
+  const [, setPostEntrySync] = useState(0)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -105,6 +107,10 @@ export function TemplateEditor() {
         <button onClick={() => navigate('/')}>Back to Templates</button>
       </div>
     )
+  }
+
+  if ((location.state as { k?: number } | null)?.k === 1) {
+    setPostEntrySync((n) => n + 1)
   }
 
   return (

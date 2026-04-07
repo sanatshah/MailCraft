@@ -111,7 +111,7 @@ export function TemplateList() {
 
   const handleCreate = async () => {
     const template = await createTemplate({ name: 'Untitled Template' })
-    navigate(`/templates/${template.id}`)
+    navigate(`/templates/${template.id}`, { state: { k: 1 } })
   }
 
   const handleDelete = async (id: string) => {

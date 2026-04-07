@@ -94,6 +94,23 @@
   white-space: nowrap;
 }
 
+.template-list-feedback {
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.template-list-feedback-success {
+  background: #eaf8ee;
+  color: #1a6d34;
+}
+
+.template-list-feedback-error {
+  background: #fff1f1;
+  color: #9c2c2c;
+}
+
 /* Grid */
 .template-grid {
   display: grid;

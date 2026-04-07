@@ -17,6 +17,23 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _build_duplicate_name(conn, original_name: str) -> str:
+    first_copy_name = f"{original_name} (Copy)"
+    rows = conn.execute(
+        "SELECT name FROM templates WHERE name = ? OR name LIKE ?",
+        (first_copy_name, f"{original_name} (Copy %)"),
+    ).fetchall()
+    existing_names = {row["name"] for row in rows}
+
+    if first_copy_name not in existing_names:
+        return first_copy_name
+
+    copy_number = 2
+    while f"{original_name} (Copy {copy_number})" in existing_names:
+        copy_number += 1
+    return f"{original_name} (Copy {copy_number})"
+
+
 # ---------------------------------------------------------------------------
 # CRUD
 # ---------------------------------------------------------------------------
@@ -141,12 +158,13 @@ async def duplicate_template(template_id: str) -> dict:
         original = row_to_dict(row)
         new_id = str(uuid.uuid4())
         now = _now()
+        duplicate_name = _build_duplicate_name(conn, original["name"])
         conn.execute(
             """INSERT INTO templates (id, name, subject, content, preview_text, created_at, updated_at)
                VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (
                 new_id,
-                f"{original['name']} (Copy)",
+                duplicate_name,
                 original["subject"],
                 json.dumps(original["content"]),
                 original["preview_text"],

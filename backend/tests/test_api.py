@@ -157,6 +157,28 @@ def test_duplicate_template():
     assert len(data["content"]) == 1
 
 
+def test_duplicate_template_uses_incrementing_copy_names():
+    create_resp = client.post("/api/templates", json={"name": "Original"})
+    template_id = create_resp.json()["id"]
+
+    first = client.post(f"/api/templates/{template_id}/duplicate")
+    second = client.post(f"/api/templates/{template_id}/duplicate")
+    third = client.post(f"/api/templates/{template_id}/duplicate")
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert third.status_code == 201
+
+    assert first.json()["name"] == "Original (Copy)"
+    assert second.json()["name"] == "Original (Copy 2)"
+    assert third.json()["name"] == "Original (Copy 3)"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

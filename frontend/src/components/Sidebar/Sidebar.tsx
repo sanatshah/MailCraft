@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import './Sidebar.css'
 
@@ -33,6 +34,8 @@ const NAV_ITEMS = [
   },
 ] as const
 
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'mailcraft.sidebar.collapsed'
+
 function isNavActive(pathname: string, label: string): boolean {
   if (label === 'Home') {
     return pathname === '/'
@@ -45,9 +48,27 @@ function isNavActive(pathname: string, label: string): boolean {
 
 export function Sidebar() {
   const location = useLocation()
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true'
+  })
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      SIDEBAR_COLLAPSED_STORAGE_KEY,
+      String(isCollapsed),
+    )
+  }, [isCollapsed])
 
   return (
-    <aside className="sidebar" data-testid="sidebar">
+    <aside
+      className={`sidebar ${isCollapsed ? 'sidebar--collapsed' : ''}`}
+      data-testid="sidebar"
+      data-collapsed={isCollapsed}
+    >
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
@@ -56,6 +77,30 @@ export function Sidebar() {
           </svg>
           <span className="sidebar-brand">MailCraft</span>
         </div>
+        <button
+          type="button"
+          className="sidebar-toggle"
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-pressed={isCollapsed}
+          onClick={() => setIsCollapsed((current) => !current)}
+        >
+          <svg
+            className="sidebar-toggle-icon"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M12.5 5L7.5 10L12.5 15"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
       </div>
 
       <nav className="sidebar-nav">
@@ -65,6 +110,7 @@ export function Sidebar() {
               key={item.label}
               className="sidebar-nav-item sidebar-nav-item--placeholder"
               aria-disabled="true"
+              title={isCollapsed ? item.label : undefined}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
               <span className="sidebar-nav-label">{item.label}</span>
@@ -78,6 +124,8 @@ export function Sidebar() {
                   isNavActive(location.pathname, item.label) ? 'active' : ''
                 }`
               }
+              title={isCollapsed ? item.label : undefined}
+              aria-label={isCollapsed ? item.label : undefined}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
               <span className="sidebar-nav-label">{item.label}</span>
@@ -87,7 +135,11 @@ export function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-nav-item">
+        <div
+          className="sidebar-nav-item"
+          title={isCollapsed ? 'Account' : undefined}
+          aria-label={isCollapsed ? 'Account' : undefined}
+        >
           <span className="sidebar-nav-icon">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />

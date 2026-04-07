@@ -26,6 +26,8 @@ export function TemplateEditor() {
   const editor = useTemplateEditor(id)
   const [htmlPreview, setHtmlPreview] = useState<string | null>(null)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
+  const [duplicateError, setDuplicateError] = useState<string | null>(null)
+  const [duplicating, setDuplicating] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -89,6 +91,22 @@ export function TemplateEditor() {
     }
   }, [id, editor])
 
+  const handleDuplicate = useCallback(async () => {
+    if (!id) return
+
+    setDuplicateError(null)
+    try {
+      setDuplicating(true)
+      await editor.save()
+      const duplicated = await api.duplicateTemplate(id)
+      navigate(`/templates/${duplicated.id}`)
+    } catch {
+      setDuplicateError('Failed to duplicate template')
+    } finally {
+      setDuplicating(false)
+    }
+  }, [id, editor, navigate])
+
   if (editor.loading) {
     return (
       <div className="editor-loading">
@@ -142,6 +160,9 @@ export function TemplateEditor() {
             <span className="save-indicator">
               {editor.saving ? 'Saving…' : 'Saved'}
             </span>
+            <button className="btn-secondary" onClick={handleDuplicate} disabled={duplicating}>
+              {duplicating ? 'Duplicating…' : 'Duplicate'}
+            </button>
             <button className="btn-secondary" onClick={() => editor.save()}>
               Save
             </button>
@@ -150,6 +171,7 @@ export function TemplateEditor() {
             </button>
           </div>
         </div>
+        {duplicateError && <div className="editor-inline-error">{duplicateError}</div>}
 
         {/* Three-panel editor */}
         <div className="editor-panels">

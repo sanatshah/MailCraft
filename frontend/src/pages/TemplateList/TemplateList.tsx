@@ -113,6 +113,8 @@ export function TemplateList() {
     useTemplates()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [statusError, setStatusError] = useState<string | null>(null)
 
   const filtered = templates.filter(
     (t) =>
@@ -128,6 +130,17 @@ export function TemplateList() {
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this template?')) {
       await deleteTemplate(id)
+    }
+  }
+
+  const handleDuplicate = async (id: string) => {
+    setStatusMessage(null)
+    setStatusError(null)
+    try {
+      const duplicated = await duplicateTemplate(id)
+      setStatusMessage(`Template duplicated as "${duplicated.name}".`)
+    } catch {
+      setStatusError('Failed to duplicate template. Please try again.')
     }
   }
 
@@ -182,6 +195,9 @@ export function TemplateList() {
         <span className="template-count">{filtered.length} template{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
+      {statusMessage && <div className="template-list-feedback success">{statusMessage}</div>}
+      {statusError && <div className="template-list-feedback error">{statusError}</div>}
+
       {filtered.length === 0 ? (
         <div className="template-list-empty">
           <div className="empty-icon">
@@ -203,7 +219,7 @@ export function TemplateList() {
               key={template.id}
               template={template}
               onEdit={() => navigate(`/templates/${template.id}`)}
-              onDuplicate={() => duplicateTemplate(template.id)}
+              onDuplicate={() => handleDuplicate(template.id)}
               onDelete={() => handleDelete(template.id)}
             />
           ))}

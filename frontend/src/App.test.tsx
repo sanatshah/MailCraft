@@ -79,21 +79,40 @@ const sampleTop = {
   ],
 }
 
+const sampleTemplate = {
+  id: 't1',
+  name: 'Welcome',
+  subject: 'Welcome aboard',
+  preview_text: 'Say hello',
+  content: [{ id: 'b1', type: 'text', properties: { content: 'Hello there' } }],
+  created_at: '2025-03-01T00:00:00Z',
+  updated_at: '2025-03-01T00:00:00Z',
+}
+
+const duplicateTemplate = {
+  ...sampleTemplate,
+  id: 'copy-1',
+  name: 'Welcome (Copy)',
+}
+
 function setupFetch(options: {
   overview?: typeof emptyOverview
   trends?: typeof sampleTrends
   top?: typeof sampleTop
   templatesList?: unknown[]
+  templateById?: Record<string, unknown>
 } = {}) {
   const overview = options.overview ?? emptyOverview
   const trends = options.trends ?? { period_days: 7, series: [] }
   const top = options.top ?? { period_days: 7, templates: [] }
   const templatesList = options.templatesList ?? []
+  const templateById = options.templateById ?? {}
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
+      const method = (init?.method ?? 'GET').toUpperCase()
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
       }
@@ -103,8 +122,56 @@ function setupFetch(options: {
       if (path.startsWith('/api/dashboard/top-templates')) {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
-      if (path === '/api/templates') {
+      if (path === '/api/templates' && method === 'GET') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path === '/api/templates' && method === 'POST') {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              ...sampleTemplate,
+              id: 'created-template',
+              name: 'Untitled Template',
+            }),
+            { status: 201 },
+          ),
+        )
+      }
+      if (path === '/api/templates/t1/duplicate' && method === 'POST') {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify(duplicateTemplate),
+            { status: 201 },
+          ),
+        )
+      }
+      if (path === '/api/templates/t1' && method === 'GET') {
+        return Promise.resolve(
+          new Response(JSON.stringify(templateById['t1'] ?? sampleTemplate)),
+        )
+      }
+      if (path === '/api/templates/t1' && method === 'PUT') {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              ...sampleTemplate,
+              ...(init?.body ? JSON.parse(String(init.body)) : {}),
+            }),
+          ),
+        )
+      }
+      if (path === '/api/templates/copy-1' && method === 'GET') {
+        return Promise.resolve(new Response(JSON.stringify(duplicateTemplate)))
+      }
+      if (path === '/api/templates/copy-1' && method === 'PUT') {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              ...duplicateTemplate,
+              ...(init?.body ? JSON.parse(String(init.body)) : {}),
+            }),
+          ),
+        )
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -175,6 +242,10 @@ describe('App', () => {
   })
 
   it('navigates to templates list from sidebar', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [sampleTemplate],
+    })
     render(<App />)
     await waitFor(() => {
       expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
@@ -186,5 +257,46 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('duplicates template from list and shows success feedback', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [sampleTemplate],
+    })
+    render(<App />)
+    const templatesLink = screen.getByRole('link', { name: 'Templates' })
+    fireEvent.click(templatesLink)
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByLabelText('Template actions'))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Template duplicated as "Welcome (Copy)".'),
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('duplicates template from editor toolbar and navigates to copy', async () => {
+    vi.unstubAllGlobals()
+    window.history.pushState({}, '', '/templates/t1')
+    setupFetch({
+      templatesList: [sampleTemplate],
+      templateById: { t1: sampleTemplate },
+    })
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Welcome (Copy)')).toBeInTheDocument()
+    })
   })
 })

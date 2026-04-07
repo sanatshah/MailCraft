@@ -91,6 +91,13 @@
   flex-shrink: 0;
 }
 
+.editor-inline-error {
+  color: var(--color-danger);
+  font-size: var(--font-size-xs);
+  max-width: 220px;
+  text-align: right;
+}
+
 .save-indicator {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);

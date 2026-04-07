@@ -84,15 +84,17 @@ function setupFetch(options: {
   trends?: typeof sampleTrends
   top?: typeof sampleTop
   templatesList?: unknown[]
+  duplicateResponse?: unknown
 } = {}) {
   const overview = options.overview ?? emptyOverview
   const trends = options.trends ?? { period_days: 7, series: [] }
   const top = options.top ?? { period_days: 7, templates: [] }
   const templatesList = options.templatesList ?? []
+  const duplicateResponse = options.duplicateResponse ?? null
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
@@ -105,6 +107,15 @@ function setupFetch(options: {
       }
       if (path === '/api/templates') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (
+        path.match(/^\/api\/templates\/[^/]+\/duplicate$/) &&
+        (init?.method ?? 'GET').toUpperCase() === 'POST'
+      ) {
+        if (duplicateResponse) {
+          return Promise.resolve(new Response(JSON.stringify(duplicateResponse), { status: 201 }))
+        }
+        return Promise.resolve(new Response('duplication failed', { status: 500 }))
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -186,5 +197,46 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('duplicates a template from list actions', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [
+        {
+          id: 't1',
+          name: 'Welcome',
+          subject: 'Hello',
+          content: [],
+          preview_text: '',
+          created_at: '2026-01-01T00:00:00Z',
+          updated_at: '2026-01-01T00:00:00Z',
+        },
+      ],
+      duplicateResponse: {
+        id: 't2',
+        name: 'Welcome (Copy)',
+        subject: 'Hello',
+        content: [],
+        preview_text: '',
+        created_at: '2026-01-01T00:01:00Z',
+        updated_at: '2026-01-01T00:01:00Z',
+      },
+    })
+
+    render(<App />)
+    const templatesLink = screen.getByRole('link', { name: 'Templates' })
+    fireEvent.click(templatesLink)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByLabelText('Template actions'))
+    fireEvent.click(screen.getByText('Duplicate'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Created duplicate: Welcome (Copy)')).toBeInTheDocument()
+    })
   })
 })

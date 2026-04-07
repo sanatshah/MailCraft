@@ -17,6 +17,27 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _next_duplicate_name(conn, source_name: str) -> str:
+    base_name = f"{source_name} (Copy)"
+    exists = conn.execute(
+        "SELECT 1 FROM templates WHERE name = ? LIMIT 1",
+        (base_name,),
+    ).fetchone()
+    if exists is None:
+        return base_name
+
+    index = 2
+    while True:
+        candidate = f"{source_name} (Copy {index})"
+        exists = conn.execute(
+            "SELECT 1 FROM templates WHERE name = ? LIMIT 1",
+            (candidate,),
+        ).fetchone()
+        if exists is None:
+            return candidate
+        index += 1
+
+
 # ---------------------------------------------------------------------------
 # CRUD
 # ---------------------------------------------------------------------------
@@ -124,6 +145,45 @@ async def delete_template(template_id: str) -> None:
             raise HTTPException(status_code=404, detail="Template not found")
         conn.execute("DELETE FROM templates WHERE id = ?", (template_id,))
         conn.commit()
+    finally:
+        conn.close()
+
+
+@router.post("/{template_id}/duplicate", response_model=TemplateResponse, status_code=201)
+async def duplicate_template(template_id: str) -> dict:
+    conn = get_connection()
+    try:
+        source = conn.execute(
+            "SELECT * FROM templates WHERE id = ?",
+            (template_id,),
+        ).fetchone()
+        if source is None:
+            raise HTTPException(status_code=404, detail="Template not found")
+
+        new_template_id = str(uuid.uuid4())
+        now = _now()
+        duplicate_name = _next_duplicate_name(conn, source["name"])
+
+        conn.execute(
+            """INSERT INTO templates (id, name, subject, content, preview_text, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                new_template_id,
+                duplicate_name,
+                source["subject"],
+                source["content"],
+                source["preview_text"],
+                now,
+                now,
+            ),
+        )
+        conn.commit()
+
+        row = conn.execute(
+            "SELECT * FROM templates WHERE id = ?",
+            (new_template_id,),
+        ).fetchone()
+        return row_to_dict(row)
     finally:
         conn.close()
 

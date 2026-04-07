@@ -53,6 +53,20 @@
   gap: var(--space-md);
 }
 
+.template-list-status {
+  margin-top: calc(var(--space-md) * -1);
+  margin-bottom: var(--space-md);
+  font-size: var(--font-size-sm);
+}
+
+.template-list-status.success {
+  color: #1f7a42;
+}
+
+.template-list-status.error {
+  color: var(--color-danger);
+}
+
 .search-input-wrapper {
   position: relative;
   flex: 1;

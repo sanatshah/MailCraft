@@ -137,6 +137,89 @@ def test_delete_template_not_found():
     assert response.status_code == 404
 
 
+def test_duplicate_template():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Newsletter",
+            "subject": "April Updates",
+            "preview_text": "Top stories this week",
+            "content": [
+                {
+                    "id": "b1",
+                    "type": "text",
+                    "properties": {"content": "Hello subscribers"},
+                }
+            ],
+        },
+    )
+    source = create_resp.json()
+
+    duplicate_resp = client.post(f"/api/templates/{source['id']}/duplicate")
+    assert duplicate_resp.status_code == 201
+    duplicate = duplicate_resp.json()
+
+    assert duplicate["id"] != source["id"]
+    assert duplicate["name"] == "Newsletter (Copy)"
+    assert duplicate["subject"] == source["subject"]
+    assert duplicate["preview_text"] == source["preview_text"]
+    assert duplicate["content"] == source["content"]
+
+
+def test_duplicate_template_increments_name_for_repeated_duplicates():
+    source = client.post("/api/templates", json={"name": "Promo"}).json()
+
+    first = client.post(f"/api/templates/{source['id']}/duplicate").json()
+    second = client.post(f"/api/templates/{source['id']}/duplicate").json()
+    third = client.post(f"/api/templates/{source['id']}/duplicate").json()
+
+    assert first["name"] == "Promo (Copy)"
+    assert second["name"] == "Promo (Copy 2)"
+    assert third["name"] == "Promo (Copy 3)"
+
+
+def test_duplicate_template_is_independent_of_original():
+    source = client.post(
+        "/api/templates",
+        json={
+            "name": "Source",
+            "subject": "Original Subject",
+            "content": [{"id": "b1", "type": "text", "properties": {"content": "Original"}}],
+            "preview_text": "Original preview",
+        },
+    ).json()
+    duplicate = client.post(f"/api/templates/{source['id']}/duplicate").json()
+
+    update_resp = client.put(
+        f"/api/templates/{duplicate['id']}",
+        json={
+            "name": "Source (Copy) Edited",
+            "subject": "Edited Subject",
+            "content": [{"id": "b1", "type": "text", "properties": {"content": "Edited"}}],
+            "preview_text": "Edited preview",
+        },
+    )
+    assert update_resp.status_code == 200
+
+    reloaded_source = client.get(f"/api/templates/{source['id']}").json()
+    reloaded_duplicate = client.get(f"/api/templates/{duplicate['id']}").json()
+
+    assert reloaded_source["name"] == "Source"
+    assert reloaded_source["subject"] == "Original Subject"
+    assert reloaded_source["preview_text"] == "Original preview"
+    assert reloaded_source["content"][0]["properties"]["content"] == "Original"
+
+    assert reloaded_duplicate["name"] == "Source (Copy) Edited"
+    assert reloaded_duplicate["subject"] == "Edited Subject"
+    assert reloaded_duplicate["preview_text"] == "Edited preview"
+    assert reloaded_duplicate["content"][0]["properties"]["content"] == "Edited"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

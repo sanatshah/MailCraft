@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import datetime, timezone
+import sqlite3
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
@@ -15,6 +16,22 @@ router = APIRouter(prefix="/api/templates", tags=["templates"])
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _generate_duplicate_name(conn: sqlite3.Connection, source_name: str) -> str:
+    """Return a deterministic, unique duplicate name for a template."""
+    base_name = f"{source_name} (Copy)"
+    candidate = base_name
+    suffix = 2
+
+    while True:
+        existing = conn.execute(
+            "SELECT 1 FROM templates WHERE name = ? LIMIT 1", (candidate,)
+        ).fetchone()
+        if existing is None:
+            return candidate
+        candidate = f"{source_name} (Copy {suffix})"
+        suffix += 1
 
 
 # ---------------------------------------------------------------------------
@@ -146,7 +163,7 @@ async def duplicate_template(template_id: str) -> dict:
                VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (
                 new_id,
-                f"{original['name']} (Copy)",
+                _generate_duplicate_name(conn, original["name"]),
                 original["subject"],
                 json.dumps(original["content"]),
                 original["preview_text"],

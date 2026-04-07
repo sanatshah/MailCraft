@@ -157,6 +157,61 @@ def test_duplicate_template():
     assert len(data["content"]) == 1
 
 
+def test_duplicate_template_name_increments():
+    create_resp = client.post("/api/templates", json={"name": "Original"})
+    template_id = create_resp.json()["id"]
+
+    first = client.post(f"/api/templates/{template_id}/duplicate")
+    second = client.post(f"/api/templates/{template_id}/duplicate")
+    third = client.post(f"/api/templates/{template_id}/duplicate")
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert third.status_code == 201
+    assert first.json()["name"] == "Original (Copy)"
+    assert second.json()["name"] == "Original (Copy 2)"
+    assert third.json()["name"] == "Original (Copy 3)"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
+def test_duplicate_template_is_independent_snapshot():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Weekly Update",
+            "subject": "Week 1",
+            "preview_text": "Original preview",
+            "content": [{"id": "b1", "type": "text", "properties": {"content": "Hello"}}],
+        },
+    )
+    original_id = create_resp.json()["id"]
+
+    duplicate_resp = client.post(f"/api/templates/{original_id}/duplicate")
+    assert duplicate_resp.status_code == 201
+    duplicate = duplicate_resp.json()
+    duplicate_id = duplicate["id"]
+    assert duplicate["preview_text"] == "Original preview"
+    assert duplicate["subject"] == "Week 1"
+    assert duplicate["content"] == [
+        {"id": "b1", "type": "text", "properties": {"content": "Hello"}}
+    ]
+
+    update_copy = client.put(
+        f"/api/templates/{duplicate_id}",
+        json={"subject": "Week 2", "preview_text": "Edited copy"},
+    )
+    assert update_copy.status_code == 200
+
+    original = client.get(f"/api/templates/{original_id}")
+    assert original.status_code == 200
+    assert original.json()["subject"] == "Week 1"
+    assert original.json()["preview_text"] == "Original preview"
+
+
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

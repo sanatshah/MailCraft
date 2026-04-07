@@ -137,6 +137,75 @@ def test_delete_template_not_found():
     assert response.status_code == 404
 
 
+def test_duplicate_template_creates_copy_with_incrementing_name():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Welcome",
+            "subject": "Hello",
+            "preview_text": "Preview line",
+            "content": [
+                {"id": "b1", "type": "text", "properties": {"content": "Original body"}}
+            ],
+        },
+    )
+    template_id = create_resp.json()["id"]
+
+    first_dup = client.post(f"/api/templates/{template_id}/duplicate")
+    assert first_dup.status_code == 201
+    first_data = first_dup.json()
+    assert first_data["name"] == "Copy of Welcome"
+    assert first_data["subject"] == "Hello"
+    assert first_data["preview_text"] == "Preview line"
+    assert first_data["content"] == [
+        {"id": "b1", "type": "text", "properties": {"content": "Original body"}}
+    ]
+    assert first_data["id"] != template_id
+
+    second_dup = client.post(f"/api/templates/{template_id}/duplicate")
+    assert second_dup.status_code == 201
+    assert second_dup.json()["name"] == "Copy of Welcome (2)"
+
+    third_dup = client.post(f"/api/templates/{template_id}/duplicate")
+    assert third_dup.status_code == 201
+    assert third_dup.json()["name"] == "Copy of Welcome (3)"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
+def test_duplicate_template_is_independent_after_edit():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Newsletter",
+            "subject": "April update",
+            "content": [{"id": "t1", "type": "text", "properties": {"content": "A"}}],
+        },
+    )
+    source_id = create_resp.json()["id"]
+
+    dup_resp = client.post(f"/api/templates/{source_id}/duplicate")
+    assert dup_resp.status_code == 201
+    dup_id = dup_resp.json()["id"]
+
+    update_dup = client.put(
+        f"/api/templates/{dup_id}",
+        json={
+            "subject": "Changed copy",
+            "content": [{"id": "t1", "type": "text", "properties": {"content": "B"}}],
+        },
+    )
+    assert update_dup.status_code == 200
+
+    source_after = client.get(f"/api/templates/{source_id}")
+    assert source_after.status_code == 200
+    assert source_after.json()["subject"] == "April update"
+    assert source_after.json()["content"][0]["properties"]["content"] == "A"
+
+
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

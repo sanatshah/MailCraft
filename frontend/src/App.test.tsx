@@ -79,21 +79,32 @@ const sampleTop = {
   ],
 }
 
+type TemplateFixture = {
+  id: string
+  name: string
+  subject: string
+  content: unknown[]
+  preview_text: string
+  created_at: string
+  updated_at: string
+}
+
 function setupFetch(options: {
   overview?: typeof emptyOverview
   trends?: typeof sampleTrends
   top?: typeof sampleTop
-  templatesList?: unknown[]
+  templatesList?: TemplateFixture[]
 } = {}) {
   const overview = options.overview ?? emptyOverview
   const trends = options.trends ?? { period_days: 7, series: [] }
   const top = options.top ?? { period_days: 7, templates: [] }
-  const templatesList = options.templatesList ?? []
+  const templates = [...(options.templatesList ?? [])]
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
+      const method = init?.method ?? 'GET'
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
       }
@@ -103,8 +114,48 @@ function setupFetch(options: {
       if (path.startsWith('/api/dashboard/top-templates')) {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
-      if (path === '/api/templates') {
-        return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      if (path === '/api/templates' && method === 'GET') {
+        return Promise.resolve(new Response(JSON.stringify(templates)))
+      }
+
+      const duplicateMatch = path.match(/^\/api\/templates\/([^/]+)\/duplicate$/)
+      if (duplicateMatch && method === 'POST') {
+        const source = templates.find((t) => t.id === duplicateMatch[1])
+        if (!source) {
+          return Promise.resolve(new Response('not found', { status: 404 }))
+        }
+        const copy: TemplateFixture = {
+          ...source,
+          id: `${source.id}-copy-${templates.length}`,
+          name: templates.some((t) => t.name === `Copy of ${source.name}`)
+            ? `Copy of ${source.name} (${templates.length})`
+            : `Copy of ${source.name}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        templates.unshift(copy)
+        return Promise.resolve(new Response(JSON.stringify(copy), { status: 201 }))
+      }
+
+      const templateMatch = path.match(/^\/api\/templates\/([^/]+)$/)
+      if (templateMatch && method === 'GET') {
+        const template = templates.find((t) => t.id === templateMatch[1])
+        if (!template) {
+          return Promise.resolve(new Response('not found', { status: 404 }))
+        }
+        return Promise.resolve(new Response(JSON.stringify(template)))
+      }
+
+      if (templateMatch && method === 'PUT') {
+        const template = templates.find((t) => t.id === templateMatch[1])
+        if (!template) {
+          return Promise.resolve(new Response('not found', { status: 404 }))
+        }
+        const update = init?.body ? JSON.parse(String(init.body)) : {}
+        const updated = { ...template, ...update, updated_at: new Date().toISOString() }
+        const idx = templates.findIndex((t) => t.id === template.id)
+        templates[idx] = updated
+        return Promise.resolve(new Response(JSON.stringify(updated)))
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -186,5 +237,65 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('duplicates a template from list actions', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [
+        {
+          id: 't-1',
+          name: 'Welcome Email',
+          subject: 'Hello!',
+          content: [],
+          preview_text: '',
+          created_at: '2026-01-01T00:00:00.000Z',
+          updated_at: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    })
+
+    render(<App />)
+    fireEvent.click(screen.getByRole('link', { name: 'Templates' }))
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Template actions' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Duplicated as "Copy of Welcome Email"')).toBeInTheDocument()
+    })
+  })
+
+  it('duplicates from editor and navigates to copied template', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [
+        {
+          id: 't-1',
+          name: 'Promo',
+          subject: 'Sale',
+          content: [],
+          preview_text: '',
+          created_at: '2026-01-01T00:00:00.000Z',
+          updated_at: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    })
+
+    window.history.pushState({}, '', '/templates/t-1')
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+
+    await waitFor(() => {
+      expect(window.location.pathname).toMatch(/^\/templates\/t-1-copy-/)
+    })
   })
 })

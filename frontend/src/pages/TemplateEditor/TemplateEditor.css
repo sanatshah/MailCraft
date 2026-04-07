@@ -118,6 +118,12 @@
   font-size: var(--font-size-sm);
 }
 
+.editor-error-inline {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin: var(--space-sm) var(--space-md) 0;
+}
+
 /* Panels */
 .editor-panels {
   flex: 1;

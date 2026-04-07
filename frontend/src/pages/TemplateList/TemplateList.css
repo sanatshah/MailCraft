@@ -53,6 +53,20 @@
   gap: var(--space-md);
 }
 
+.template-list-message,
+.template-list-action-error {
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+.template-list-message {
+  color: #0f6d3f;
+}
+
+.template-list-action-error {
+  color: var(--color-danger);
+}
+
 .search-input-wrapper {
   position: relative;
   flex: 1;

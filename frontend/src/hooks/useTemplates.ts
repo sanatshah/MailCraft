@@ -35,6 +35,12 @@ export function useTemplates() {
     setTemplates((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
+  const duplicateTemplate = useCallback(async (id: string) => {
+    const duplicate = await api.duplicateTemplate(id)
+    setTemplates((prev) => [...prev, duplicate])
+    return duplicate
+  }, [])
+
   return {
     templates,
     loading,
@@ -42,5 +48,6 @@ export function useTemplates() {
     fetchTemplates,
     createTemplate,
     deleteTemplate,
+    duplicateTemplate,
   }
 }

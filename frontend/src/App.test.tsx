@@ -140,7 +140,13 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
     })
+    expect(
+      screen.getByRole('heading', { name: 'Email activity dashboard', level: 1 }),
+    ).toBeInTheDocument()
     expect(screen.getByTestId('home-empty-banner')).toBeInTheDocument()
+    expect(screen.getByTestId('home-trend-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('home-top-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('home-fail-empty')).toBeInTheDocument()
     expect(screen.getByText('Manage templates')).toBeInTheDocument()
   })
 
@@ -160,6 +166,31 @@ describe('App', () => {
     expect(screen.getByTestId('home-trend-chart')).toBeInTheDocument()
     expect(screen.getByTestId('home-top-templates')).toBeInTheDocument()
     expect(screen.getByTestId('home-recent-failures')).toBeInTheDocument()
+  })
+
+  it('adds accessible text alternatives for trend visualization', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      overview: sampleOverview,
+      trends: sampleTrends,
+      top: sampleTop,
+    })
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-trend-chart')).toBeInTheDocument()
+    })
+    expect(screen.getByRole('list', { name: /daily trend values/i })).toBeInTheDocument()
+    expect(screen.getByText('Mar 19: 1 sent, 0 failed, 1 opens')).toBeInTheDocument()
+  })
+
+  it('keeps period control before templates action in focus order', async () => {
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+    const periodControl = screen.getByLabelText('Dashboard period in days')
+    const manageTemplates = screen.getByRole('link', { name: 'Manage templates' })
+    expect(periodControl.compareDocumentPosition(manageTemplates) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('shows dashboard error UI when API fails', async () => {

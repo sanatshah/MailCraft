@@ -151,10 +151,58 @@ def test_duplicate_template():
     response = client.post(f"/api/templates/{template_id}/duplicate")
     assert response.status_code == 201
     data = response.json()
-    assert data["name"] == "Original (Copy)"
+    assert data["name"] == "Copy of Original"
     assert data["subject"] == "Test Subject"
     assert data["id"] != template_id
     assert len(data["content"]) == 1
+
+
+def test_duplicate_template_name_is_incremented():
+    create_resp = client.post("/api/templates", json={"name": "Newsletter"})
+    template_id = create_resp.json()["id"]
+
+    first_duplicate = client.post(f"/api/templates/{template_id}/duplicate")
+    second_duplicate = client.post(f"/api/templates/{template_id}/duplicate")
+
+    assert first_duplicate.status_code == 201
+    assert second_duplicate.status_code == 201
+    assert first_duplicate.json()["name"] == "Copy of Newsletter"
+    assert second_duplicate.json()["name"] == "Copy of Newsletter (2)"
+
+
+def test_duplicate_template_is_independent_from_original():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Lifecycle",
+            "subject": "Welcome",
+            "content": [{"id": "b1", "type": "text", "properties": {"content": "Original"}}],
+            "preview_text": "Original preview",
+        },
+    )
+    original_id = create_resp.json()["id"]
+
+    duplicate_resp = client.post(f"/api/templates/{original_id}/duplicate")
+    duplicate_id = duplicate_resp.json()["id"]
+
+    update_duplicate = client.put(
+        f"/api/templates/{duplicate_id}",
+        json={
+            "name": "Edited copy",
+            "subject": "Changed subject",
+            "content": [{"id": "b2", "type": "text", "properties": {"content": "Changed"}}],
+            "preview_text": "Changed preview",
+        },
+    )
+    assert update_duplicate.status_code == 200
+
+    original_after = client.get(f"/api/templates/{original_id}")
+    assert original_after.status_code == 200
+    original = original_after.json()
+    assert original["name"] == "Lifecycle"
+    assert original["subject"] == "Welcome"
+    assert original["content"][0]["properties"]["content"] == "Original"
+    assert original["preview_text"] == "Original preview"
 
 
 def test_export_html():

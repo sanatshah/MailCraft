@@ -33,3 +33,4 @@ On first start, the backend auto-creates `backend/email_templates.db` and seeds 
 - The VM's system Python 3.12 does not ship `python3.12-venv` by default. The update script installs it via `apt`. If venv creation fails with "ensurepip is not available", run `sudo apt-get install -y python3.12-venv`.
 - The backend venv lives at `backend/.venv`. Always activate it before running backend commands.
 - The frontend uses `npm` (lockfile: `package-lock.json`).
+- The Vite dev server binds to `localhost`, not `127.0.0.1`. Use `curl http://localhost:5174` (not `http://127.0.0.1:5174`) to reach the frontend.

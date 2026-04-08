@@ -231,8 +231,8 @@ describe('App', () => {
 
     window.history.pushState({}, '', '/templates')
     render(<App />)
-    const createButton = await screen.findByRole('button', { name: 'Create Template' })
-    fireEvent.click(createButton)
+    const createButtons = await screen.findAllByRole('button', { name: 'Create Template' })
+    fireEvent.click(createButtons[0])
 
     await waitFor(() => {
       expect(screen.getByTestId('template-editor')).toBeInTheDocument()

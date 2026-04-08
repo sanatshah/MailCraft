@@ -118,6 +118,7 @@ afterEach(() => {
 
 describe('App', () => {
   beforeEach(() => {
+    window.history.pushState({}, '', '/')
     setupFetch()
   })
 
@@ -186,5 +187,56 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('navigates to editor when creating a template', async () => {
+    vi.unstubAllGlobals()
+    const createdTemplate = {
+      id: 'new-template-id',
+      name: 'Untitled Template',
+      subject: '',
+      content: [],
+      preview_text: '',
+      created_at: '2026-04-08T00:00:00Z',
+      updated_at: '2026-04-08T00:00:00Z',
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const path = pathnameFrom(input)
+        if (path.startsWith('/api/dashboard/overview')) {
+          return Promise.resolve(new Response(JSON.stringify(emptyOverview)))
+        }
+        if (path.startsWith('/api/dashboard/trends')) {
+          return Promise.resolve(new Response(JSON.stringify({ period_days: 7, series: [] })))
+        }
+        if (path.startsWith('/api/dashboard/top-templates')) {
+          return Promise.resolve(new Response(JSON.stringify({ period_days: 7, templates: [] })))
+        }
+        if (path === '/api/templates' && !init?.method) {
+          return Promise.resolve(new Response(JSON.stringify([])))
+        }
+        if (path === '/api/templates' && init?.method === 'POST') {
+          return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+        }
+        if (path === `/api/templates/${createdTemplate.id}`) {
+          return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+        }
+        if (path === `/api/templates/${createdTemplate.id}` && init?.method === 'PUT') {
+          return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+        }
+        return Promise.resolve(new Response('not found', { status: 404 }))
+      }),
+    )
+
+    window.history.pushState({}, '', '/templates')
+    render(<App />)
+    const createButton = await screen.findByRole('button', { name: 'Create Template' })
+    fireEvent.click(createButton)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+    expect(screen.getByDisplayValue('Untitled Template')).toBeInTheDocument()
   })
 })

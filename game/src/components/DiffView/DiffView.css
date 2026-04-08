@@ -1,0 +1,127 @@
+.diff-view {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-editor-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Header ── */
+.dv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dv-filename {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.dv-actions {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.dv-btn {
+  padding: var(--space-xs) var(--space-sm);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.dv-btn:hover {
+  opacity: 0.85;
+}
+
+.dv-btn--accept {
+  background: var(--color-success);
+  color: var(--color-bg);
+}
+
+.dv-btn--reject {
+  background: var(--color-error);
+  color: var(--color-bg);
+}
+
+.dv-badge {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.dv-badge--accepted {
+  background: var(--color-diff-add-bg);
+  color: var(--color-diff-add-text);
+}
+
+.dv-badge--rejected {
+  background: var(--color-diff-remove-bg);
+  color: var(--color-diff-remove-text);
+}
+
+/* ── Diff body ── */
+.dv-body {
+  overflow: auto;
+  max-height: 400px;
+  padding: var(--space-xs) 0;
+}
+
+.dv-line {
+  display: flex;
+  line-height: 1.6;
+}
+
+.dv-marker {
+  width: 24px;
+  flex-shrink: 0;
+  text-align: center;
+  user-select: none;
+  color: var(--color-text-muted);
+}
+
+.dv-text {
+  flex: 1;
+  padding-left: var(--space-xs);
+  white-space: pre;
+}
+
+.dv-line--added {
+  background: var(--color-diff-add-bg);
+}
+
+.dv-line--added .dv-marker {
+  color: var(--color-diff-add-text);
+}
+
+.dv-line--added .dv-text {
+  color: var(--color-diff-add-text);
+}
+
+.dv-line--removed {
+  background: var(--color-diff-remove-bg);
+}
+
+.dv-line--removed .dv-marker {
+  color: var(--color-diff-remove-text);
+}
+
+.dv-line--removed .dv-text {
+  color: var(--color-diff-remove-text);
+}
+
+.dv-line--unchanged .dv-text {
+  color: var(--color-text-secondary);
+}

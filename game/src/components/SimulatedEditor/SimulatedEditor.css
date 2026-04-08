@@ -1,0 +1,110 @@
+.simulated-editor {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-editor-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Tabs ── */
+.se-tabs {
+  display: flex;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.se-tab {
+  padding: var(--space-xs) var(--space-md);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.se-tab:hover {
+  color: var(--color-text-secondary);
+}
+
+.se-tab--active {
+  color: var(--color-text);
+  border-bottom-color: var(--color-amber);
+  background: var(--color-editor-bg);
+}
+
+/* ── Code area ── */
+.se-code-area {
+  overflow: auto;
+  max-height: 400px;
+  padding: var(--space-xs) 0;
+}
+
+.se-line {
+  display: flex;
+  line-height: 1.6;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.se-line:hover {
+  background: var(--color-editor-line);
+}
+
+.se-line--selected {
+  background: var(--color-editor-selection);
+}
+
+.se-line--selected:hover {
+  background: var(--color-editor-selection);
+}
+
+.se-gutter {
+  width: 48px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: var(--space-sm);
+  color: var(--color-text-muted);
+  user-select: none;
+  background: var(--color-editor-gutter);
+}
+
+.se-content {
+  flex: 1;
+  padding-left: var(--space-sm);
+  white-space: pre;
+  color: var(--color-text);
+}
+
+/* ── Syntax tokens ── */
+.se-syntax-keyword {
+  color: var(--color-syntax-keyword);
+}
+
+.se-syntax-string {
+  color: var(--color-syntax-string);
+}
+
+.se-syntax-comment {
+  color: var(--color-syntax-comment);
+  font-style: italic;
+}
+
+.se-syntax-function {
+  color: var(--color-syntax-function);
+}
+
+.se-syntax-number {
+  color: var(--color-syntax-number);
+}
+
+.se-syntax-variable {
+  color: var(--color-syntax-variable);
+}

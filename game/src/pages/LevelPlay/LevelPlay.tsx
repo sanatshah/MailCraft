@@ -11,6 +11,7 @@ import { ModeSelector } from '../../components/ModeSelector/ModeSelector'
 import { ModelSelector } from '../../components/ModelSelector/ModelSelector'
 import { QuizPanel } from '../../components/QuizPanel/QuizPanel'
 import { HintSystem } from '../../components/HintSystem/HintSystem'
+import { CursorSidebar } from '../../components/CursorSidebar/CursorSidebar'
 import type { LevelPhase, ChallengeStep, ChatMessage } from '../../types/game'
 import './LevelPlay.css'
 
@@ -271,38 +272,43 @@ export function LevelPlay() {
 
   // ── Render ──
   return (
-    <div className="level-play" data-testid="level-play">
-      {/* Header */}
-      <div className="level-play__header">
-        <div className="level-play__header-left">
-          <Link to="/world" className="level-play__back">
-            ← Back
-          </Link>
-          <div className="level-play__level-info">
-            <div className="level-play__level-title">
-              {level.isBoss ? '⭐ ' : ''}
-              {level.title}
-            </div>
-            <div className="level-play__level-subtitle">{level.subtitle}</div>
-          </div>
-        </div>
-        <div className="level-play__phase-indicator">
-          {PHASES.map((p, i) => (
-            <div
-              key={p}
-              className={`level-play__phase-dot ${i === phaseIdx ? 'level-play__phase-dot--active' : ''} ${i < phaseIdx ? 'level-play__phase-dot--done' : ''}`}
-            />
-          ))}
-        </div>
-        <CatAvatar
-          mood={phase === 'complete' ? 'happy' : phase === 'challenge' ? 'thinking' : 'idle'}
-          accessories={accessories}
-          size="sm"
-        />
-      </div>
+    <div className="level-play level-play--with-sidebar" data-testid="level-play">
+      {/* Cursor-style sidebar */}
+      <CursorSidebar currentLevelId={levelId ?? ''} />
 
-      {/* Body */}
-      <div className="level-play__body">
+      {/* Main content area */}
+      <div className="level-play__main">
+        {/* Compact header */}
+        <div className="level-play__header">
+          <div className="level-play__header-left">
+            <Link to="/world" className="level-play__back">
+              ←
+            </Link>
+            <div className="level-play__level-info">
+              <div className="level-play__level-title">
+                {level.isBoss ? '⭐ ' : ''}
+                {level.title}
+              </div>
+              <div className="level-play__level-subtitle">{level.subtitle}</div>
+            </div>
+          </div>
+          <div className="level-play__phase-indicator">
+            {PHASES.map((p, i) => (
+              <div
+                key={p}
+                className={`level-play__phase-dot ${i === phaseIdx ? 'level-play__phase-dot--active' : ''} ${i < phaseIdx ? 'level-play__phase-dot--done' : ''}`}
+              />
+            ))}
+          </div>
+          <CatAvatar
+            mood={phase === 'complete' ? 'happy' : phase === 'challenge' ? 'thinking' : 'idle'}
+            accessories={accessories}
+            size="sm"
+          />
+        </div>
+
+        {/* Body */}
+        <div className="level-play__body">
         {/* ── BRIEFING ── */}
         {phase === 'briefing' && (
           <div className="briefing">
@@ -983,6 +989,7 @@ export function LevelPlay() {
             levelId={level.id}
           />
         )}
+        </div>
       </div>
     </div>
   )

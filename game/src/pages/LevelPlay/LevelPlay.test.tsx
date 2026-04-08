@@ -1,4 +1,4 @@
-import { render, fireEvent, within, cleanup } from '@testing-library/react'
+import { render, fireEvent, cleanup } from '@testing-library/react'
 import { afterEach, beforeEach, describe, it, expect } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { LevelPlay } from './LevelPlay'
@@ -38,9 +38,9 @@ describe('LevelPlay', () => {
 
   describe('briefing phase', () => {
     it('renders the level title in the header', () => {
-      const { getByTestId } = renderLevel('1-1')
-      const header = getByTestId('level-play')
-      expect(within(header).getByText('First Meow')).toBeInTheDocument()
+      const { container } = renderLevel('1-1')
+      const headerTitle = container.querySelector('.level-play__level-title')
+      expect(headerTitle).toHaveTextContent('First Meow')
     })
 
     it('renders the concept tag', () => {
@@ -157,16 +157,17 @@ describe('LevelPlay', () => {
     })
 
     it('shows the level title', () => {
-      const { getByText } = renderLevel('boss-1')
-      expect(getByText(/The Yarn Ball Challenge/)).toBeInTheDocument()
+      const { container } = renderLevel('boss-1')
+      const headerTitle = container.querySelector('.level-play__level-title')
+      expect(headerTitle).toHaveTextContent('The Yarn Ball Challenge')
     })
   })
 
   describe('back navigation', () => {
     it('has a back link to world map', () => {
-      const { getByText } = renderLevel('1-1')
-      const backLink = getByText('← Back')
-      expect(backLink.closest('a')).toHaveAttribute('href', '/world')
+      const { container } = renderLevel('1-1')
+      const backLink = container.querySelector('.level-play__back')
+      expect(backLink).toHaveAttribute('href', '/world')
     })
   })
 })

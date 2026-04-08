@@ -8,9 +8,9 @@ interface ModeSelectorProps {
 }
 
 const MODES = [
-  { id: 'ask', label: 'Ask', icon: '💬' },
-  { id: 'plan', label: 'Plan', icon: '📋' },
-  { id: 'agent', label: 'Agent', icon: '🤖' },
+  { id: 'Ask', label: 'Plan New Idea', icon: '💡', shortcut: '⇧Tab' },
+  { id: 'Plan', label: 'Open Editor Window', icon: '📝', shortcut: '' },
+  { id: 'Agent', label: 'Run in Cloud', icon: '☁️', shortcut: '' },
 ] as const
 
 export function ModeSelector({ activeMode, enabledModes, onSelect }: ModeSelectorProps) {
@@ -32,14 +32,16 @@ export function ModeSelector({ activeMode, enabledModes, onSelect }: ModeSelecto
         return (
           <button
             key={mode.id}
-            className={`mode-selector__tab${isActive ? ' mode-selector__tab--active' : ''}${!isEnabled ? ' mode-selector__tab--disabled' : ''}`}
+            className={`mode-selector__btn${isActive ? ' mode-selector__btn--active' : ''}${!isEnabled ? ' mode-selector__btn--disabled' : ''}`}
             onClick={() => handleClick(mode.id)}
             disabled={!isEnabled}
             aria-pressed={isActive}
             data-testid={`mode-tab-${mode.id}`}
           >
-            <span className="mode-selector__icon">{mode.icon}</span>
             <span className="mode-selector__label">{mode.label}</span>
+            {mode.shortcut && (
+              <span className="mode-selector__shortcut">{mode.shortcut}</span>
+            )}
           </button>
         )
       })}

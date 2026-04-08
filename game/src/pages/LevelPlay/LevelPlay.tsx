@@ -24,9 +24,9 @@ export function LevelPlay() {
   const {
     accessories,
     addXp,
-    completeLevel: completeLevelAction,
+    completeLevel: markLevelComplete,
     addAccessory,
-    useHint: useHintAction,
+    useHint: recordHintUse,
   } = useGameStore()
 
   // Phase tracking
@@ -237,23 +237,23 @@ export function LevelPlay() {
     totalXp += quizScore * 10
 
     addXp(totalXp)
-    completeLevelAction(levelId)
+    markLevelComplete(levelId)
     addAccessory(level.reward.accessory)
     navigate('/world')
-  }, [level, levelId, startTime, hintTier, quizScore, addXp, completeLevelAction, addAccessory, navigate])
+  }, [level, levelId, startTime, hintTier, quizScore, addXp, markLevelComplete, addAccessory, navigate])
 
   // Handle hint
   const handleRequestHint = useCallback(
     (tier: number) => {
       if (!levelId) return
       setHintTier(tier)
-      useHintAction(levelId, tier)
+      recordHintUse(levelId, tier)
       const cost = level?.hints[tier]?.xpCost ?? 0
       if (cost > 0) {
         addXp(-cost)
       }
     },
-    [levelId, level, useHintAction, addXp],
+    [levelId, level, recordHintUse, addXp],
   )
 
   // ── Not found ──

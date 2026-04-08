@@ -1,0 +1,115 @@
+.model-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+}
+
+@media (max-width: 560px) {
+  .model-selector {
+    grid-template-columns: 1fr;
+  }
+}
+
+.model-selector--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.model-selector__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-md);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+  font-family: var(--font-family);
+  text-align: center;
+  color: var(--color-text);
+}
+
+.model-selector__card:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-text-muted);
+}
+
+.model-selector__card--selected {
+  border-color: var(--color-amber);
+  box-shadow: var(--shadow-glow-amber);
+  background: var(--color-surface-hover);
+}
+
+.model-selector__card--selected:hover {
+  border-color: var(--color-amber-hover);
+}
+
+.model-selector__emoji {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.model-selector__name {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-cream);
+}
+
+.model-selector__real-model {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-amber);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.model-selector__traits {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.model-selector__stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: 100%;
+  margin-top: var(--space-xs);
+}
+
+.model-selector__stat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.model-selector__stat-label {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  width: 28px;
+  text-align: right;
+}
+
+.model-selector__stat-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.model-selector__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: background var(--transition-fast);
+}
+
+.model-selector__dot--filled {
+  background: var(--color-amber);
+}

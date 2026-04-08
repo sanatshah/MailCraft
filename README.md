@@ -6,8 +6,9 @@ Mailcraft is a local email template editor: a **React + Vite** frontend for buil
 
 | Path | Role |
 |------|------|
-| `frontend/` | Vite + React + TypeScript UI |
+| `frontend/` | Vite + React + TypeScript UI (MailCraft) |
 | `backend/` | FastAPI app (`app.main:app`), SQLite at `backend/email_templates.db` |
+| `game/` | Vite + React + TypeScript game (Cursor Cats) |
 
 ## Prerequisites
 
@@ -81,3 +82,47 @@ cd frontend && npm run build
 ```
 
 Serve the built assets with your preferred static host; keep `/api` routed to the FastAPI app.
+
+---
+
+## 🐱 Cursor Cats — Interactive Learning Game
+
+**Cursor Cats** is a browser-based game that teaches users how to use Cursor through a narrative-driven, level-based experience. Players adopt and train a virtual AI cat companion, unlocking abilities that map to real Cursor features.
+
+### Run the game
+
+```bash
+cd game
+npm install
+npm run dev
+```
+
+Open [http://localhost:5175](http://localhost:5175)
+
+### Game structure
+
+| World | Theme | Levels |
+|-------|-------|--------|
+| 1 — Kitten Academy | Agent Interaction (Ask, Plan, Agent, Debug, Models) | 5 + Boss |
+| 2 — Grooming Salon | Agent Customization (Rules, MCPs, Context, Scoping) | 4 + Boss |
+| 3 — Cat Colony | Agent Orchestration (Background, Tasks, Automation, Review) | 4 + Boss |
+| Final Boss | The Cursor Cat Championship | 1 |
+
+**Total: 16 levels + 1 final challenge**
+
+### Test & build
+
+```bash
+cd game
+npm run test    # vitest (46 tests)
+npm run lint    # eslint
+npm run build   # production build
+```
+
+### How it works
+
+- Standalone Vite + React + TypeScript app — no backend needed
+- Game state persisted in localStorage via Zustand
+- All agent interactions are pre-scripted with typing animations
+- ASCII art cat avatar with collectible accessories
+- XP / rank progression system (Stray Kitten → Cursor Cat Master)

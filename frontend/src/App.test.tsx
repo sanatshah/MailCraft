@@ -1,6 +1,7 @@
 import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import type { Template } from './types'
 
 function pathnameFrom(input: RequestInfo | URL): string {
   const href =
@@ -79,21 +80,45 @@ const sampleTop = {
   ],
 }
 
+function makeTemplate(overrides: Partial<Template> = {}): Template {
+  return {
+    id: 'template-1',
+    name: 'Template 1',
+    subject: '',
+    content: [],
+    preview_text: '',
+    created_at: '2025-03-01T12:00:00+00:00',
+    updated_at: '2025-03-01T12:00:00+00:00',
+    ...overrides,
+  }
+}
+
 function setupFetch(options: {
   overview?: typeof emptyOverview
   trends?: typeof sampleTrends
   top?: typeof sampleTop
-  templatesList?: unknown[]
+  templatesList?: Template[]
+  createdTemplate?: Template
+  templateDetails?: Record<string, Template>
 } = {}) {
   const overview = options.overview ?? emptyOverview
   const trends = options.trends ?? { period_days: 7, series: [] }
   const top = options.top ?? { period_days: 7, templates: [] }
   const templatesList = options.templatesList ?? []
+  const createdTemplate =
+    options.createdTemplate ?? makeTemplate({ id: 'new-template-id', name: 'Untitled Template' })
+  const templateDetails = {
+    [createdTemplate.id]: createdTemplate,
+    ...(options.templateDetails ?? {}),
+  }
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
+      const method =
+        (init?.method ??
+          (input instanceof Request ? input.method : 'GET')).toUpperCase()
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
       }
@@ -103,8 +128,18 @@ function setupFetch(options: {
       if (path.startsWith('/api/dashboard/top-templates')) {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
-      if (path === '/api/templates') {
+      if (path === '/api/templates' && method === 'GET') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path === '/api/templates' && method === 'POST') {
+        return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+      }
+      if (path.startsWith('/api/templates/') && method === 'GET') {
+        const templateId = path.replace('/api/templates/', '')
+        const template = templateDetails[templateId]
+        if (template) {
+          return Promise.resolve(new Response(JSON.stringify(template)))
+        }
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -186,5 +221,24 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('creates a template and navigates to editor without crashing', async () => {
+    window.history.pushState({}, '', '/templates')
+    setupFetch({
+      templatesList: [],
+      createdTemplate: makeTemplate({ id: 'new-template-id', name: 'Untitled Template' }),
+    })
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Create Template' })[0])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+    expect(screen.getByPlaceholderText('Template name')).toHaveValue('Untitled Template')
   })
 })

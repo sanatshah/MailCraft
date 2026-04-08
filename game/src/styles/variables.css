@@ -1,0 +1,102 @@
+:root {
+  /* Primary palette — warm, cozy, cat-themed */
+  --color-bg: #1B1F3B;
+  --color-bg-light: #252A4A;
+  --color-bg-lighter: #2F3560;
+
+  --color-surface: #2A2F52;
+  --color-surface-hover: #343A64;
+  --color-surface-active: #3E4574;
+
+  --color-cream: #FFFAF3;
+  --color-cream-dim: #E8E3DC;
+
+  --color-amber: #F5A623;
+  --color-amber-hover: #E6991A;
+  --color-amber-glow: rgba(245, 166, 35, 0.2);
+
+  --color-purple: #C9AEF1;
+  --color-purple-dim: #A08CC4;
+
+  --color-forest: #2D4A3E;
+  --color-forest-light: #3D6A54;
+
+  --color-coral: #EF6351;
+  --color-coral-hover: #E74F3C;
+
+  /* Semantic colors */
+  --color-text: #FFFAF3;
+  --color-text-secondary: rgba(255, 250, 243, 0.65);
+  --color-text-muted: rgba(255, 250, 243, 0.4);
+
+  --color-success: #4ADE80;
+  --color-error: #F87171;
+  --color-warning: #FBBF24;
+  --color-info: #60A5FA;
+
+  --color-border: rgba(255, 250, 243, 0.1);
+  --color-border-light: rgba(255, 250, 243, 0.06);
+
+  /* Code / editor colors */
+  --color-editor-bg: #0D1117;
+  --color-editor-gutter: #161B22;
+  --color-editor-line: rgba(255, 255, 255, 0.05);
+  --color-editor-selection: rgba(245, 166, 35, 0.25);
+  --color-syntax-keyword: #FF7B72;
+  --color-syntax-string: #A5D6FF;
+  --color-syntax-comment: #8B949E;
+  --color-syntax-function: #D2A8FF;
+  --color-syntax-number: #79C0FF;
+  --color-syntax-variable: #FFA657;
+
+  /* Terminal colors */
+  --color-terminal-bg: #0D1117;
+  --color-terminal-text: #C9D1D9;
+
+  /* Diff colors */
+  --color-diff-add-bg: rgba(74, 222, 128, 0.1);
+  --color-diff-add-text: #4ADE80;
+  --color-diff-remove-bg: rgba(248, 113, 113, 0.1);
+  --color-diff-remove-text: #F87171;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-round: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow-amber: 0 0 20px rgba(245, 166, 35, 0.3);
+  --shadow-glow-purple: 0 0 20px rgba(201, 174, 241, 0.3);
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+  --font-size-4xl: 48px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms ease;
+}

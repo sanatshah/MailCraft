@@ -1,0 +1,80 @@
+.cat-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  user-select: none;
+}
+
+.cat-avatar__art {
+  font-family: var(--font-mono);
+  line-height: 1.2;
+  color: var(--color-cream);
+  text-align: center;
+  white-space: pre;
+}
+
+.cat-avatar--sm .cat-avatar__art {
+  font-size: 10px;
+}
+
+.cat-avatar--md .cat-avatar__art {
+  font-size: 16px;
+}
+
+.cat-avatar--lg .cat-avatar__art {
+  font-size: 24px;
+}
+
+.cat-avatar--happy .cat-avatar__art {
+  color: var(--color-amber);
+}
+
+.cat-avatar--error .cat-avatar__art {
+  color: var(--color-error);
+}
+
+.cat-avatar--thinking .cat-avatar__art {
+  color: var(--color-purple);
+}
+
+.cat-avatar--sleeping .cat-avatar__art {
+  color: var(--color-text-secondary);
+}
+
+.cat-avatar__accessories {
+  font-size: 1.2em;
+  text-align: center;
+  line-height: 1;
+}
+
+.cat-avatar--sm .cat-avatar__accessories {
+  font-size: 12px;
+}
+
+.cat-avatar--md .cat-avatar__accessories {
+  font-size: 18px;
+}
+
+.cat-avatar--lg .cat-avatar__accessories {
+  font-size: 28px;
+}
+
+.cat-avatar__accessories--top {
+  margin-bottom: -4px;
+}
+
+.cat-avatar__accessories--face {
+  position: absolute;
+  right: -1.5em;
+  top: 40%;
+}
+
+.cat-avatar__accessories--neck {
+  margin-top: -2px;
+}
+
+.cat-avatar__accessories--body {
+  margin-top: 4px;
+  opacity: 0.8;
+}

@@ -138,6 +138,7 @@ afterEach(() => {
 
 describe('App', () => {
   beforeEach(() => {
+    window.history.pushState({}, '', '/')
     setupFetch()
   })
 
@@ -219,7 +220,7 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /create template/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /create template/i })[0])
     await waitFor(() => {
       expect(screen.getByTestId('template-editor')).toBeInTheDocument()
     })

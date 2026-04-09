@@ -4,9 +4,11 @@ import './HtmlPreviewModal.css'
 interface HtmlPreviewModalProps {
   html: string
   onClose: () => void
+  /** Shown in the modal header (e.g. "Email preview" vs "HTML Export") */
+  title?: string
 }
 
-export function HtmlPreviewModal({ html, onClose }: HtmlPreviewModalProps) {
+export function HtmlPreviewModal({ html, onClose, title = 'HTML Export' }: HtmlPreviewModalProps) {
   const [copied, setCopied] = useState(false)
   const [tab, setTab] = useState<'preview' | 'code'>('preview')
 
@@ -32,7 +34,7 @@ export function HtmlPreviewModal({ html, onClose }: HtmlPreviewModalProps) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>HTML Export</h2>
+          <h2>{title}</h2>
           <div className="modal-tabs">
             <button
               className={`modal-tab ${tab === 'preview' ? 'active' : ''}`}

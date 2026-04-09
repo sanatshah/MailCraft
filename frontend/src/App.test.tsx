@@ -141,7 +141,7 @@ describe('App', () => {
       expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
     })
     expect(screen.getByTestId('home-empty-banner')).toBeInTheDocument()
-    expect(screen.getByText('Manage templates')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Create Template/i })).toBeInTheDocument()
   })
 
   it('renders dashboard KPIs when analytics data exists', async () => {

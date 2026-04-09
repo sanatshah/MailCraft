@@ -187,4 +187,64 @@ describe('App', () => {
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
   })
+
+  it('creates a template and opens the editor without crashing', async () => {
+    vi.unstubAllGlobals()
+
+    const createdTemplate = {
+      id: 'tmpl-new',
+      name: 'Untitled Template',
+      subject: '',
+      content: [],
+      preview_text: '',
+      created_at: '2026-04-09T00:00:00+00:00',
+      updated_at: '2026-04-09T00:00:00+00:00',
+    }
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const path = pathnameFrom(input)
+        const method = init?.method ?? 'GET'
+
+        if (path.startsWith('/api/dashboard/overview')) {
+          return Promise.resolve(new Response(JSON.stringify(emptyOverview)))
+        }
+        if (path.startsWith('/api/dashboard/trends')) {
+          return Promise.resolve(new Response(JSON.stringify({ period_days: 7, series: [] })))
+        }
+        if (path.startsWith('/api/dashboard/top-templates')) {
+          return Promise.resolve(new Response(JSON.stringify({ period_days: 7, templates: [] })))
+        }
+        if (path === '/api/templates' && method === 'GET') {
+          return Promise.resolve(new Response(JSON.stringify([])))
+        }
+        if (path === '/api/templates' && method === 'POST') {
+          return Promise.resolve(new Response(JSON.stringify(createdTemplate), { status: 201 }))
+        }
+        if (path === '/api/templates/tmpl-new' && method === 'GET') {
+          return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+        }
+        if (path === '/api/templates/tmpl-new' && method === 'PUT') {
+          return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+        }
+        return Promise.resolve(new Response('not found', { status: 404 }))
+      }),
+    )
+
+    window.history.pushState({}, '', '/templates')
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    const createButtons = screen.getAllByRole('button', { name: 'Create Template' })
+    fireEvent.click(createButtons[0])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+    expect(screen.getByPlaceholderText('Template name')).toHaveValue('Untitled Template')
+  })
 })

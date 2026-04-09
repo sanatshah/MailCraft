@@ -84,16 +84,28 @@ function setupFetch(options: {
   trends?: typeof sampleTrends
   top?: typeof sampleTop
   templatesList?: unknown[]
+  createdTemplate?: Record<string, unknown>
 } = {}) {
   const overview = options.overview ?? emptyOverview
   const trends = options.trends ?? { period_days: 7, series: [] }
   const top = options.top ?? { period_days: 7, templates: [] }
   const templatesList = options.templatesList ?? []
+  const createdTemplate = options.createdTemplate ?? {
+    id: 'new-template-id',
+    name: 'Untitled Template',
+    subject: '',
+    content: [],
+    preview_text: '',
+    created_at: '2026-04-09T00:00:00Z',
+    updated_at: '2026-04-09T00:00:00Z',
+  }
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
+      const method =
+        (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase()
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
       }
@@ -103,8 +115,14 @@ function setupFetch(options: {
       if (path.startsWith('/api/dashboard/top-templates')) {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
-      if (path === '/api/templates') {
+      if (path === '/api/templates' && method === 'GET') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path === '/api/templates' && method === 'POST') {
+        return Promise.resolve(new Response(JSON.stringify(createdTemplate), { status: 201 }))
+      }
+      if (path === `/api/templates/${String(createdTemplate.id)}`) {
+        return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -186,5 +204,43 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('creates a template and navigates to the editor without crashing', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [
+        {
+          id: 'existing-template',
+          name: 'Welcome',
+          subject: 'Hello',
+          content: [],
+          preview_text: '',
+          created_at: '2026-04-09T00:00:00Z',
+          updated_at: '2026-04-09T00:00:00Z',
+        },
+      ],
+      createdTemplate: {
+        id: 'new-template-id',
+        name: 'Untitled Template',
+        subject: '',
+        content: [],
+        preview_text: '',
+        created_at: '2026-04-09T00:00:00Z',
+        updated_at: '2026-04-09T00:00:00Z',
+      },
+    })
+    window.history.pushState({}, '', '/templates')
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create Template' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
   })
 })

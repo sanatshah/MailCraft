@@ -102,8 +102,10 @@ function setupFetch(options: {
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
+      const method =
+        input instanceof Request ? input.method : init?.method?.toUpperCase() ?? 'GET'
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
       }
@@ -114,7 +116,7 @@ function setupFetch(options: {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
       if (path === '/api/templates') {
-        if (input instanceof Request && input.method === 'POST') {
+        if (method === 'POST') {
           return Promise.resolve(new Response(JSON.stringify(sampleTemplate)))
         }
         return Promise.resolve(new Response(JSON.stringify(templatesList)))

@@ -79,6 +79,16 @@ const sampleTop = {
   ],
 }
 
+const sampleTemplate = {
+  id: 'tpl-1',
+  name: 'Untitled Template',
+  subject: '',
+  content: [],
+  preview_text: '',
+  created_at: '2025-03-01T00:00:00+00:00',
+  updated_at: '2025-03-01T00:00:00+00:00',
+}
+
 function setupFetch(options: {
   overview?: typeof emptyOverview
   trends?: typeof sampleTrends
@@ -104,7 +114,13 @@ function setupFetch(options: {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
       if (path === '/api/templates') {
+        if (input instanceof Request && input.method === 'POST') {
+          return Promise.resolve(new Response(JSON.stringify(sampleTemplate)))
+        }
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path === '/api/templates/tpl-1') {
+        return Promise.resolve(new Response(JSON.stringify(sampleTemplate)))
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -118,6 +134,7 @@ afterEach(() => {
 
 describe('App', () => {
   beforeEach(() => {
+    window.history.pushState({}, '', '/')
     setupFetch()
   })
 
@@ -186,5 +203,21 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('creates a template and navigates to editor without crashing', async () => {
+    window.history.pushState({}, '', '/templates')
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create Template' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+    expect(screen.getByDisplayValue('Untitled Template')).toBeInTheDocument()
   })
 })

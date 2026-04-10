@@ -1,4 +1,4 @@
-import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, waitFor, fireEvent, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
@@ -213,7 +213,9 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create Template' }))
+    const templateList = screen.getByTestId('template-list')
+    const primaryAction = within(templateList).getAllByRole('button', { name: 'Create Template' })[0]
+    fireEvent.click(primaryAction)
 
     await waitFor(() => {
       expect(screen.getByTestId('template-editor')).toBeInTheDocument()

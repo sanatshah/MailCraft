@@ -153,6 +153,7 @@ afterEach(() => {
 
 describe('App', () => {
   beforeEach(() => {
+    window.history.pushState({}, '', '/')
     setupFetch()
   })
 

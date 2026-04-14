@@ -241,7 +241,8 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /create template/i }))
+    const createButtons = screen.getAllByRole('button', { name: /create template/i })
+    fireEvent.click(createButtons[0])
 
     await waitFor(() => {
       expect(screen.getByTestId('template-editor')).toBeInTheDocument()

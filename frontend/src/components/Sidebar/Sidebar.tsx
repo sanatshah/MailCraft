@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import './Sidebar.css'
 
@@ -45,9 +46,15 @@ function isNavActive(pathname: string, label: string): boolean {
 
 export function Sidebar() {
   const location = useLocation()
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const collapseButtonLabel = isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'
 
   return (
-    <aside className="sidebar" data-testid="sidebar">
+    <aside
+      className={`sidebar ${isCollapsed ? 'sidebar--collapsed' : ''}`}
+      data-testid="sidebar"
+    >
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
@@ -56,6 +63,24 @@ export function Sidebar() {
           </svg>
           <span className="sidebar-brand">MailCraft</span>
         </div>
+        <button
+          type="button"
+          className="sidebar-collapse-btn"
+          onClick={() => setIsCollapsed((current) => !current)}
+          aria-label={collapseButtonLabel}
+          title={collapseButtonLabel}
+          aria-expanded={!isCollapsed}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M10 3.5L6 8L10 12.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
       </div>
 
       <nav className="sidebar-nav">
@@ -73,6 +98,8 @@ export function Sidebar() {
             <NavLink
               key={item.label}
               to={item.path}
+              aria-label={item.label}
+              title={item.label}
               className={() =>
                 `sidebar-nav-item ${
                   isNavActive(location.pathname, item.label) ? 'active' : ''

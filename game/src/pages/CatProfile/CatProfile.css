@@ -1,0 +1,225 @@
+/* ── CatProfile page ── */
+.cat-profile {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at top, var(--color-bg-light) 0%, var(--color-bg) 70%);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xl);
+}
+
+/* ── Back link ── */
+.cat-profile__back {
+  align-self: flex-start;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.cat-profile__back:hover {
+  color: var(--color-amber);
+}
+
+/* ── Card ── */
+.cat-profile__card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  animation: fadeIn var(--transition-normal) ease forwards;
+}
+
+/* ── Names ── */
+.cat-profile__names {
+  text-align: center;
+}
+
+.cat-profile__cat-name {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  color: var(--color-amber);
+  text-shadow: var(--shadow-glow-amber);
+}
+
+.cat-profile__player-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-xs);
+}
+
+/* ── Avatar ── */
+.cat-profile__avatar {
+  padding: var(--space-md);
+}
+
+/* ── Rank ── */
+.cat-profile__rank {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--color-bg-lighter);
+  border-radius: var(--radius-round);
+  border: 1px solid var(--color-border);
+}
+
+.cat-profile__rank-badge {
+  font-size: 1.6em;
+  line-height: 1;
+}
+
+.cat-profile__rank-name {
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  color: var(--color-purple);
+}
+
+/* ── XP ── */
+.cat-profile__xp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.cat-profile__xp-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+.cat-profile__xp-value {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-amber);
+}
+
+/* ── Levels progress ── */
+.cat-profile__progress {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.cat-profile__progress-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+.cat-profile__progress-value {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cat-profile__progress-track {
+  height: 8px;
+  background: var(--color-bg-light);
+  border-radius: var(--radius-round);
+  overflow: hidden;
+}
+
+.cat-profile__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-success), var(--color-amber));
+  border-radius: var(--radius-round);
+  transition: width var(--transition-normal);
+}
+
+/* ── Accessories section ── */
+.cat-profile__accessories {
+  width: 100%;
+}
+
+.cat-profile__section-title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-cream);
+  margin-bottom: var(--space-md);
+}
+
+.cat-profile__accessories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-sm);
+}
+
+/* ── Individual accessory slot ── */
+.cat-profile__accessory {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-light);
+  position: relative;
+  transition: transform var(--transition-fast);
+}
+
+.cat-profile__accessory--owned {
+  border-color: var(--color-amber-glow);
+  background: rgba(245, 166, 35, 0.06);
+}
+
+.cat-profile__accessory--owned:hover {
+  transform: translateY(-2px);
+}
+
+.cat-profile__accessory--locked {
+  opacity: 0.35;
+}
+
+.cat-profile__accessory-emoji {
+  font-size: var(--font-size-2xl);
+  line-height: 1;
+}
+
+.cat-profile__accessory-name {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.cat-profile__accessory-lock {
+  position: absolute;
+  top: var(--space-xs);
+  right: var(--space-xs);
+  font-size: var(--font-size-xs);
+}
+
+/* ── Reset button ── */
+.cat-profile__reset {
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  background: transparent;
+  transition: all var(--transition-fast);
+}
+
+.cat-profile__reset:hover {
+  background: rgba(248, 113, 113, 0.1);
+  transform: translateY(-1px);
+}

@@ -1,0 +1,192 @@
+.quiz-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.quiz-panel__progress {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-amber);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.quiz-panel__question {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.quiz-panel__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.quiz-panel__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-bg-light);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  text-align: left;
+}
+
+.quiz-panel__option:hover:not(:disabled):not(.quiz-panel__option--correct):not(.quiz-panel__option--wrong) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-text-muted);
+}
+
+.quiz-panel__option--selected {
+  border-color: var(--color-amber);
+  background: var(--color-surface-hover);
+}
+
+.quiz-panel__option--correct {
+  border-color: var(--color-success);
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.quiz-panel__option--wrong {
+  border-color: var(--color-error);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.quiz-panel__option-letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-border);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+.quiz-panel__option--selected .quiz-panel__option-letter {
+  background: var(--color-amber);
+  color: var(--color-bg);
+}
+
+.quiz-panel__option--correct .quiz-panel__option-letter {
+  background: var(--color-success);
+  color: var(--color-bg);
+}
+
+.quiz-panel__option--wrong .quiz-panel__option-letter {
+  background: var(--color-error);
+  color: var(--color-bg);
+}
+
+.quiz-panel__option-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.quiz-panel__option-icon {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.quiz-panel__option--correct .quiz-panel__option-icon {
+  color: var(--color-success);
+}
+
+.quiz-panel__option--wrong .quiz-panel__option-icon {
+  color: var(--color-error);
+}
+
+.quiz-panel__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.quiz-panel__btn {
+  padding: var(--space-sm) var(--space-xl);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.quiz-panel__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quiz-panel__btn--submit {
+  background: var(--color-amber);
+  color: var(--color-bg);
+}
+
+.quiz-panel__btn--submit:hover:not(:disabled) {
+  background: var(--color-amber-hover);
+}
+
+.quiz-panel__btn--next {
+  background: var(--color-success);
+  color: var(--color-bg);
+}
+
+.quiz-panel__btn--next:hover {
+  filter: brightness(1.1);
+}
+
+/* Finished / summary state */
+.quiz-panel--finished {
+  align-items: center;
+  text-align: center;
+}
+
+.quiz-panel__summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-xl) 0;
+}
+
+.quiz-panel__summary-icon {
+  font-size: 48px;
+}
+
+.quiz-panel__summary-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-cream);
+  margin: 0;
+}
+
+.quiz-panel__summary-score {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-lg);
+  color: var(--color-amber);
+  margin: 0;
+}

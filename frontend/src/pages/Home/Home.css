@@ -62,12 +62,6 @@
   color: var(--color-text, #232426);
 }
 
-.home-templates-link {
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-}
-
 .home-empty-banner {
   padding: 1.25rem 1.5rem;
   border-radius: var(--radius-lg, 12px);

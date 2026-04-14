@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../../api/client'
+import { CreateTemplateModal } from '../../components/CreateTemplateModal/CreateTemplateModal'
 import type {
   DashboardOverviewExtended,
   DashboardTopTemplates,
@@ -26,12 +27,14 @@ function formatShortDate(iso: string | null): string {
 }
 
 export function Home() {
+  const navigate = useNavigate()
   const [days, setDays] = useState<number>(7)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [overviewData, setOverviewData] = useState<DashboardOverviewExtended | null>(null)
   const [trends, setTrends] = useState<DashboardTrends | null>(null)
   const [topTemplates, setTopTemplates] = useState<DashboardTopTemplates | null>(null)
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -58,6 +61,15 @@ export function Home() {
   useEffect(() => {
     void load()
   }, [load])
+
+  const handleCreateTemplate = useCallback(
+    async (name: string, subject: string) => {
+      const template = await api.createTemplate({ name, subject: subject || undefined })
+      setShowCreateModal(false)
+      navigate(`/templates/${template.id}`)
+    },
+    [navigate],
+  )
 
   const overview = overviewData?.overview
   const isEmpty =
@@ -112,9 +124,16 @@ export function Home() {
               </option>
             ))}
           </select>
-          <Link to="/templates" className="btn-primary home-templates-link">
-            Manage templates
-          </Link>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => setShowCreateModal(true)}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            Create Template
+          </button>
         </div>
       </header>
 
@@ -262,6 +281,13 @@ export function Home() {
         <div className="home-refreshing" aria-live="polite">
           Updating…
         </div>
+      )}
+
+      {showCreateModal && (
+        <CreateTemplateModal
+          onClose={() => setShowCreateModal(false)}
+          onCreate={handleCreateTemplate}
+        />
       )}
     </div>
   )

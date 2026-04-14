@@ -137,6 +137,42 @@ def test_delete_template_not_found():
     assert response.status_code == 404
 
 
+def test_duplicate_template():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Weekly Newsletter",
+            "subject": "Latest updates",
+            "preview_text": "A preview",
+            "content": [
+                {"id": "b1", "type": "text", "properties": {"content": "Hello readers"}},
+            ],
+        },
+    )
+    source = create_resp.json()
+
+    duplicate_resp = client.post(f"/api/templates/{source['id']}/duplicate")
+    assert duplicate_resp.status_code == 201
+    duplicate = duplicate_resp.json()
+
+    assert duplicate["id"] != source["id"]
+    assert duplicate["name"] == "Copy of Weekly Newsletter"
+    assert duplicate["subject"] == source["subject"]
+    assert duplicate["preview_text"] == source["preview_text"]
+    assert duplicate["content"] == source["content"]
+    assert duplicate["created_at"] != source["created_at"]
+    assert duplicate["updated_at"] != source["updated_at"]
+
+    duplicate_two_resp = client.post(f"/api/templates/{source['id']}/duplicate")
+    assert duplicate_two_resp.status_code == 201
+    assert duplicate_two_resp.json()["name"] == "Copy of Weekly Newsletter (2)"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

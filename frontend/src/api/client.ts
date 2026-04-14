@@ -46,6 +46,12 @@ export const api = {
     })
   },
 
+  duplicateTemplate(id: string): Promise<Template> {
+    return request<Template>(`${BASE}/${id}/duplicate`, {
+      method: 'POST',
+    })
+  },
+
   deleteTemplate(id: string): Promise<void> {
     return request<void>(`${BASE}/${id}`, { method: 'DELETE' })
   },

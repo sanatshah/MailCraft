@@ -187,4 +187,63 @@ describe('App', () => {
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
   })
+
+  it('creates a template and opens editor without crashing', async () => {
+    vi.unstubAllGlobals()
+    const createdTemplate = {
+      id: 'new-template-id',
+      name: 'Untitled Template',
+      subject: '',
+      content: [],
+      preview_text: '',
+      created_at: '2026-01-01T00:00:00Z',
+      updated_at: '2026-01-01T00:00:00Z',
+    }
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const path = pathnameFrom(input)
+        if (path.startsWith('/api/dashboard/overview')) {
+          return Promise.resolve(new Response(JSON.stringify(emptyOverview)))
+        }
+        if (path.startsWith('/api/dashboard/trends')) {
+          return Promise.resolve(
+            new Response(JSON.stringify({ period_days: 7, series: [] })),
+          )
+        }
+        if (path.startsWith('/api/dashboard/top-templates')) {
+          return Promise.resolve(
+            new Response(JSON.stringify({ period_days: 7, templates: [] })),
+          )
+        }
+        if (path === '/api/templates' && (!init?.method || init.method === 'GET')) {
+          return Promise.resolve(new Response(JSON.stringify([])))
+        }
+        if (path === '/api/templates' && init?.method === 'POST') {
+          return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+        }
+        if (path === `/api/templates/${createdTemplate.id}`) {
+          return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+        }
+        return Promise.resolve(new Response('not found', { status: 404 }))
+      }),
+    )
+
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('link', { name: 'Templates' }))
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create Template' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+  })
 })

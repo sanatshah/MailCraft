@@ -6,7 +6,14 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   z-index: 100;
+  transition: width var(--transition-normal), min-width var(--transition-normal);
+}
+
+.sidebar--collapsed {
+  width: var(--sidebar-collapsed-width);
+  min-width: var(--sidebar-collapsed-width);
 }
 
 .sidebar-header {
@@ -18,6 +25,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  overflow: hidden;
 }
 
 .sidebar-brand {
@@ -25,6 +33,14 @@
   font-weight: 700;
   color: #ffffff;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity var(--transition-fast);
+}
+
+.sidebar--collapsed .sidebar-brand {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .sidebar-nav {
@@ -45,6 +61,15 @@
   cursor: pointer;
   font-size: var(--font-size-md);
   border-left: 3px solid transparent;
+  overflow: hidden;
+}
+
+.sidebar--collapsed .sidebar-nav-item {
+  justify-content: center;
+  padding: var(--space-sm);
+  margin: 2px auto;
+  border-left: none;
+  width: calc(var(--sidebar-collapsed-width) - var(--space-sm) * 2);
 }
 
 .sidebar-nav-item:hover {
@@ -56,6 +81,10 @@
   background-color: var(--color-sidebar-active);
   color: var(--color-sidebar-text-active);
   border-left-color: var(--color-primary);
+}
+
+.sidebar--collapsed .sidebar-nav-item.active {
+  border-left-color: transparent;
 }
 
 .sidebar-nav-item--placeholder {
@@ -81,9 +110,42 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  opacity: 1;
+  transition: opacity var(--transition-fast);
+}
+
+.sidebar--collapsed .sidebar-nav-label {
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .sidebar-footer {
   padding: var(--space-sm) 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-sidebar-text);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.sidebar-toggle:hover {
+  color: var(--color-sidebar-text-active);
+  background-color: var(--color-sidebar-hover);
+}
+
+.sidebar-toggle-icon {
+  transition: transform var(--transition-normal);
+}
+
+.sidebar-toggle-icon--collapsed {
+  transform: rotate(180deg);
 }

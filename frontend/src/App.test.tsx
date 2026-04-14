@@ -187,4 +187,40 @@ describe('App', () => {
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
   })
+
+  it('renders the sidebar collapse button', () => {
+    render(<App />)
+    const collapseBtn = screen.getByTestId('sidebar-collapse-btn')
+    expect(collapseBtn).toBeInTheDocument()
+    expect(collapseBtn).toHaveAttribute('aria-label', 'Collapse sidebar')
+  })
+
+  it('collapses and expands the sidebar when toggle is clicked', async () => {
+    render(<App />)
+    const sidebar = screen.getByTestId('sidebar')
+    const collapseBtn = screen.getByTestId('sidebar-collapse-btn')
+
+    expect(sidebar).not.toHaveClass('sidebar--collapsed')
+    expect(collapseBtn).toHaveAttribute('aria-label', 'Collapse sidebar')
+
+    fireEvent.click(collapseBtn)
+    expect(sidebar).toHaveClass('sidebar--collapsed')
+    expect(collapseBtn).toHaveAttribute('aria-label', 'Expand sidebar')
+
+    fireEvent.click(collapseBtn)
+    expect(sidebar).not.toHaveClass('sidebar--collapsed')
+    expect(collapseBtn).toHaveAttribute('aria-label', 'Collapse sidebar')
+  })
+
+  it('shows tooltips on nav items when sidebar is collapsed', async () => {
+    render(<App />)
+    const collapseBtn = screen.getByTestId('sidebar-collapse-btn')
+    fireEvent.click(collapseBtn)
+
+    const homeLink = screen.getByRole('link', { name: 'Home' })
+    const templatesLink = screen.getByRole('link', { name: 'Templates' })
+
+    expect(homeLink).toHaveAttribute('title', 'Home')
+    expect(templatesLink).toHaveAttribute('title', 'Templates')
+  })
 })

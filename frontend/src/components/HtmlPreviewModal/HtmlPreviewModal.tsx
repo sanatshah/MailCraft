@@ -4,13 +4,11 @@ import './HtmlPreviewModal.css'
 interface HtmlPreviewModalProps {
   html: string
   onClose: () => void
-  /** Shown in the modal header (e.g. "Email preview" vs "HTML Export") */
   title?: string
 }
 
 export function HtmlPreviewModal({ html, onClose, title = 'HTML Export' }: HtmlPreviewModalProps) {
   const [copied, setCopied] = useState(false)
-  const [tab, setTab] = useState<'preview' | 'code'>('preview')
 
   const handleCopy = useCallback(async () => {
     try {
@@ -35,20 +33,6 @@ export function HtmlPreviewModal({ html, onClose, title = 'HTML Export' }: HtmlP
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{title}</h2>
-          <div className="modal-tabs">
-            <button
-              className={`modal-tab ${tab === 'preview' ? 'active' : ''}`}
-              onClick={() => setTab('preview')}
-            >
-              Preview
-            </button>
-            <button
-              className={`modal-tab ${tab === 'code' ? 'active' : ''}`}
-              onClick={() => setTab('code')}
-            >
-              Code
-            </button>
-          </div>
           <div className="modal-actions">
             <button className="btn-copy" onClick={handleCopy}>
               {copied ? '✓ Copied!' : 'Copy HTML'}
@@ -61,18 +45,9 @@ export function HtmlPreviewModal({ html, onClose, title = 'HTML Export' }: HtmlP
           </div>
         </div>
         <div className="modal-body">
-          {tab === 'preview' ? (
-            <iframe
-              className="preview-iframe"
-              srcDoc={html}
-              title="Email Preview"
-              sandbox="allow-same-origin"
-            />
-          ) : (
-            <pre className="code-view">
-              <code>{html}</code>
-            </pre>
-          )}
+          <pre className="code-view">
+            <code>{html}</code>
+          </pre>
         </div>
       </div>
     </div>

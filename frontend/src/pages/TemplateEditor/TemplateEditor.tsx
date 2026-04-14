@@ -26,8 +26,6 @@ export function TemplateEditor() {
   const location = useLocation()
   const editor = useTemplateEditor(id)
   const [htmlPreview, setHtmlPreview] = useState<string | null>(null)
-  const [previewModalTitle, setPreviewModalTitle] = useState('HTML Export')
-  const [previewLoading, setPreviewLoading] = useState(false)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
   const [, setPostEntrySync] = useState(0)
 
@@ -87,25 +85,9 @@ export function TemplateEditor() {
     try {
       await editor.save()
       const html = await api.getHtml(id)
-      setPreviewModalTitle('HTML Export')
       setHtmlPreview(html)
     } catch (err) {
       console.error('Failed to export HTML:', err)
-    }
-  }, [id, editor])
-
-  const handlePreviewEmail = useCallback(async () => {
-    if (!id) return
-    try {
-      setPreviewLoading(true)
-      await editor.save()
-      const html = await api.getHtml(id)
-      setPreviewModalTitle('Email preview')
-      setHtmlPreview(html)
-    } catch (err) {
-      console.error('Failed to preview email:', err)
-    } finally {
-      setPreviewLoading(false)
     }
   }, [id, editor])
 
@@ -169,14 +151,6 @@ export function TemplateEditor() {
             <button className="btn-secondary" onClick={() => editor.save()}>
               Save
             </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={handlePreviewEmail}
-              disabled={previewLoading}
-            >
-              {previewLoading ? 'Loading preview…' : 'Preview email'}
-            </button>
             <button className="btn-primary" onClick={handleExportHtml}>
               Export HTML
             </button>
@@ -211,11 +185,7 @@ export function TemplateEditor() {
       </DragOverlay>
 
       {htmlPreview && (
-        <HtmlPreviewModal
-          html={htmlPreview}
-          title={previewModalTitle}
-          onClose={() => setHtmlPreview(null)}
-        />
+        <HtmlPreviewModal html={htmlPreview} onClose={() => setHtmlPreview(null)} />
       )}
     </DndContext>
   )

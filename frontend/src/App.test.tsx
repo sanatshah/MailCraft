@@ -114,6 +114,7 @@ function setupFetch(options: {
 afterEach(() => {
   vi.unstubAllGlobals()
   cleanup()
+  window.history.pushState({}, '', '/')
 })
 
 describe('App', () => {
@@ -186,5 +187,21 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('collapses and expands the sidebar via toggle', async () => {
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+    const sidebar = screen.getByTestId('sidebar')
+    const toggle = screen.getByTestId('sidebar-toggle')
+    expect(sidebar).not.toHaveClass('sidebar--collapsed')
+    fireEvent.click(toggle)
+    expect(sidebar).toHaveClass('sidebar--collapsed')
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(toggle)
+    expect(sidebar).not.toHaveClass('sidebar--collapsed')
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
   })
 })

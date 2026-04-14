@@ -113,6 +113,7 @@ function setupFetch(options: {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  window.localStorage.clear()
   cleanup()
 })
 
@@ -133,6 +134,24 @@ describe('App', () => {
     expect(sidebar).toHaveTextContent('Templates')
     expect(sidebar).toHaveTextContent('Home')
     expect(sidebar).toHaveTextContent('Account')
+  })
+
+  it('collapses and expands the sidebar from the toggle control', () => {
+    render(<App />)
+    const sidebar = screen.getByTestId('sidebar')
+    const collapseButton = screen.getByRole('button', {
+      name: 'Collapse side menu',
+    })
+
+    expect(sidebar).toHaveAttribute('data-collapsed', 'false')
+    fireEvent.click(collapseButton)
+    expect(sidebar).toHaveAttribute('data-collapsed', 'true')
+    expect(
+      screen.getByRole('button', { name: 'Expand side menu' }),
+    ).toBeInTheDocument()
+    expect(window.localStorage.getItem('mailcraft.sidebar.collapsed')).toBe(
+      'true',
+    )
   })
 
   it('renders the dashboard on / with empty-state guidance', async () => {

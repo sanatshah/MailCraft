@@ -331,3 +331,27 @@
   height: 60vh;
   color: var(--color-danger);
 }
+
+@media (max-width: 768px) {
+  .template-list {
+    padding: 1rem;
+  }
+
+  .template-list-header {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .template-list-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input-wrapper {
+    max-width: 100%;
+  }
+
+  .template-grid {
+    grid-template-columns: 1fr;
+  }
+}

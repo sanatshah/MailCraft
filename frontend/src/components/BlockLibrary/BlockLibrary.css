@@ -79,3 +79,27 @@
   color: var(--color-text-secondary);
   font-weight: 500;
 }
+
+@media (max-width: 768px) {
+  .block-library {
+    width: 100%;
+    min-width: 100%;
+    height: auto;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .block-library-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    gap: var(--space-md);
+  }
+
+  .block-tile {
+    min-width: 90px;
+    flex-shrink: 0;
+  }
+}

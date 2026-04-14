@@ -212,3 +212,14 @@
   background-color: #FFF5F5;
   border-color: var(--color-danger);
 }
+
+@media (max-width: 768px) {
+  .properties-panel {
+    width: 100%;
+    min-width: 100%;
+    height: auto;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+    flex: none;
+  }
+}

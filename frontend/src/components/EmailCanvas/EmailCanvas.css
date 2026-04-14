@@ -39,3 +39,20 @@
 .canvas-empty p {
   font-size: var(--font-size-md);
 }
+
+@media (max-width: 768px) {
+  .email-canvas {
+    padding: var(--space-md);
+    flex: none;
+    min-height: 500px;
+  }
+  
+  .email-body {
+    min-height: 300px;
+  }
+
+  .canvas-empty {
+    min-height: 300px;
+    padding: var(--space-md);
+  }
+}

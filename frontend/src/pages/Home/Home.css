@@ -344,3 +344,41 @@
 .home-error .btn-primary {
   display: inline-flex;
 }
+
+@media (max-width: 768px) {
+  .home-dashboard {
+    padding: 1rem;
+  }
+
+  .home-header {
+    justify-content: flex-start;
+  }
+
+  .home-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .home-trend-bars {
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+
+  .home-trend-col {
+    min-width: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-kpis {
+    grid-template-columns: 1fr;
+  }
+  
+  .home-trend-bars {
+    height: 100px;
+  }
+
+  .home-trend-stack {
+    height: 80px;
+  }
+}

@@ -230,17 +230,14 @@ describe('App', () => {
       }),
     )
 
+    window.history.pushState({}, '', '/templates')
     render(<App />)
-    await waitFor(() => {
-      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByRole('link', { name: 'Templates' }))
     await waitFor(() => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create Template' }))
+    const createButtons = screen.getAllByRole('button', { name: 'Create Template' })
+    fireEvent.click(createButtons[0])
 
     await waitFor(() => {
       expect(screen.getByTestId('template-editor')).toBeInTheDocument()

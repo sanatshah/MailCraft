@@ -140,8 +140,7 @@ export function TemplateList() {
   return (
     <div className="template-list" data-testid="template-list">
       <div className="template-list-header">
-        <div>
-          <h1 className="template-list-title">Email Templates</h1>
+        <div className="template-list-heading">
           <p className="template-list-subtitle">
             Create and manage your email templates
           </p>

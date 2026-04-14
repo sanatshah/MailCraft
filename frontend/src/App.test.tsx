@@ -113,11 +113,14 @@ function setupFetch(options: {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  window.localStorage.clear()
+  window.history.pushState({}, '', '/')
   cleanup()
 })
 
 describe('App', () => {
   beforeEach(() => {
+    window.history.pushState({}, '', '/')
     setupFetch()
   })
 
@@ -130,9 +133,46 @@ describe('App', () => {
     render(<App />)
     const sidebar = screen.getByTestId('sidebar')
     expect(sidebar).toBeInTheDocument()
+    expect(sidebar).toHaveAttribute('data-collapsed', 'false')
     expect(sidebar).toHaveTextContent('Templates')
     expect(sidebar).toHaveTextContent('Home')
     expect(sidebar).toHaveTextContent('Account')
+  })
+
+  it('collapses the sidebar and persists the preference', () => {
+    render(<App />)
+    const sidebar = screen.getByTestId('sidebar')
+    const collapseButton = screen.getByRole('button', {
+      name: 'Collapse sidebar',
+    })
+
+    fireEvent.click(collapseButton)
+
+    expect(sidebar).toHaveAttribute('data-collapsed', 'true')
+    expect(window.localStorage.getItem('mailcraft.sidebar.collapsed')).toBe(
+      'true',
+    )
+    expect(
+      screen.getByRole('button', { name: 'Expand sidebar' }),
+    ).toBeInTheDocument()
+  })
+
+  it('restores the collapsed sidebar state from local storage', () => {
+    window.localStorage.setItem('mailcraft.sidebar.collapsed', 'true')
+
+    render(<App />)
+
+    expect(screen.getByTestId('sidebar')).toHaveAttribute(
+      'data-collapsed',
+      'true',
+    )
+    expect(
+      screen.getByRole('button', { name: 'Expand sidebar' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Templates' })).toHaveAttribute(
+      'title',
+      'Templates',
+    )
   })
 
   it('renders the dashboard on / with empty-state guidance', async () => {
@@ -185,6 +225,28 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
-    expect(screen.getByText('Email Templates')).toBeInTheDocument()
+    expect(
+      screen.getByText('Create and manage your email templates'),
+    ).toBeInTheDocument()
+  })
+
+  it('navigates to templates list from the collapsed sidebar', async () => {
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Collapse sidebar' }),
+    )
+
+    const templatesLink = screen.getByRole('link', { name: 'Templates' })
+    expect(templatesLink).toHaveAttribute('title', 'Templates')
+
+    fireEvent.click(templatesLink)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
   })
 })

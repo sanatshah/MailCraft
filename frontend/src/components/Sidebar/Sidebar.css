@@ -7,9 +7,20 @@
   flex-direction: column;
   overflow-y: auto;
   z-index: 100;
+  transition:
+    width var(--transition-normal),
+    min-width var(--transition-normal);
+}
+
+.sidebar--collapsed {
+  width: var(--sidebar-collapsed-width);
+  min-width: var(--sidebar-collapsed-width);
 }
 
 .sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: var(--space-lg) var(--space-md);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -18,6 +29,15 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.sidebar-logo svg {
+  display: block;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .sidebar-brand {
@@ -25,6 +45,38 @@
   font-weight: 700;
   color: #ffffff;
   letter-spacing: -0.02em;
+  transition:
+    opacity var(--transition-fast),
+    width var(--transition-fast);
+}
+
+.sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--color-sidebar-text);
+  flex-shrink: 0;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.sidebar-toggle:hover {
+  background-color: var(--color-sidebar-hover);
+  color: var(--color-sidebar-text-active);
+}
+
+.sidebar-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.sidebar-toggle-icon {
+  transition: transform var(--transition-fast);
 }
 
 .sidebar-nav {
@@ -81,9 +133,40 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition:
+    opacity var(--transition-fast),
+    width var(--transition-fast);
 }
 
 .sidebar-footer {
   padding: var(--space-sm) 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar--collapsed .sidebar-header {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-xs);
+}
+
+.sidebar--collapsed .sidebar-logo {
+  gap: 0;
+  width: 100%;
+  justify-content: center;
+}
+
+.sidebar--collapsed .sidebar-brand,
+.sidebar--collapsed .sidebar-nav-label {
+  width: 0;
+  opacity: 0;
+}
+
+.sidebar--collapsed .sidebar-nav-item {
+  justify-content: center;
+  padding-inline: var(--space-sm);
+}
+
+.sidebar--collapsed .sidebar-toggle-icon {
+  transform: rotate(180deg);
 }

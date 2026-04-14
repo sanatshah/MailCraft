@@ -2,6 +2,8 @@ import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
+const SIDEBAR_STORAGE_KEY = 'mailcraft.sidebar.collapsed'
+
 function pathnameFrom(input: RequestInfo | URL): string {
   const href =
     typeof input === 'string'
@@ -118,6 +120,7 @@ afterEach(() => {
 
 describe('App', () => {
   beforeEach(() => {
+    window.localStorage.clear()
     setupFetch()
   })
 
@@ -133,6 +136,30 @@ describe('App', () => {
     expect(sidebar).toHaveTextContent('Templates')
     expect(sidebar).toHaveTextContent('Home')
     expect(sidebar).toHaveTextContent('Account')
+  })
+
+  it('collapses the sidebar and persists the preference', async () => {
+    render(<App />)
+
+    const toggle = screen.getByRole('button', { name: 'Collapse side menu' })
+    fireEvent.click(toggle)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sidebar')).toHaveAttribute('data-collapsed', 'true')
+    })
+    expect(screen.queryByText('MailCraft')).not.toBeInTheDocument()
+    expect(window.localStorage.getItem(SIDEBAR_STORAGE_KEY)).toBe('true')
+    expect(screen.getByRole('link', { name: 'Templates' })).toBeInTheDocument()
+  })
+
+  it('restores the collapsed sidebar state from local storage', () => {
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, 'true')
+
+    render(<App />)
+
+    expect(screen.getByTestId('sidebar')).toHaveAttribute('data-collapsed', 'true')
+    expect(screen.getByRole('button', { name: 'Expand side menu' })).toBeInTheDocument()
+    expect(screen.queryByText('MailCraft')).not.toBeInTheDocument()
   })
 
   it('renders the dashboard on / with empty-state guidance', async () => {

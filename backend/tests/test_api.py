@@ -137,6 +137,61 @@ def test_delete_template_not_found():
     assert response.status_code == 404
 
 
+def test_duplicate_template():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Welcome Campaign",
+            "subject": "Hello there",
+            "preview_text": "Quick preview",
+            "content": [
+                {
+                    "id": "b1",
+                    "type": "text",
+                    "properties": {"content": "Original body"},
+                }
+            ],
+        },
+    )
+    source = create_resp.json()
+
+    duplicate_resp = client.post(f"/api/templates/{source['id']}/duplicate")
+    assert duplicate_resp.status_code == 201
+    duplicate = duplicate_resp.json()
+
+    assert duplicate["id"] != source["id"]
+    assert duplicate["name"] == "Welcome Campaign (Copy)"
+    assert duplicate["subject"] == source["subject"]
+    assert duplicate["preview_text"] == source["preview_text"]
+    assert duplicate["content"] == source["content"]
+
+    # Ensure copy is independent from source edits.
+    update_copy_resp = client.put(
+        f"/api/templates/{duplicate['id']}",
+        json={"subject": "Updated copy subject"},
+    )
+    assert update_copy_resp.status_code == 200
+
+    source_after = client.get(f"/api/templates/{source['id']}")
+    assert source_after.status_code == 200
+    assert source_after.json()["subject"] == "Hello there"
+
+
+def test_duplicate_template_uses_incremented_copy_suffix():
+    source = client.post("/api/templates", json={"name": "Newsletter"}).json()
+    client.post("/api/templates", json={"name": "Newsletter (Copy)"})
+    client.post("/api/templates", json={"name": "Newsletter (Copy 2)"})
+
+    duplicate_resp = client.post(f"/api/templates/{source['id']}/duplicate")
+    assert duplicate_resp.status_code == 201
+    assert duplicate_resp.json()["name"] == "Newsletter (Copy 3)"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

@@ -30,6 +30,12 @@ export function useTemplates() {
     return template
   }, [])
 
+  const duplicateTemplate = useCallback(async (id: string) => {
+    const template = await api.duplicateTemplate(id)
+    setTemplates((prev) => [template, ...prev])
+    return template
+  }, [])
+
   const deleteTemplate = useCallback(async (id: string) => {
     await api.deleteTemplate(id)
     setTemplates((prev) => prev.filter((t) => t.id !== id))
@@ -41,6 +47,7 @@ export function useTemplates() {
     error,
     fetchTemplates,
     createTemplate,
+    duplicateTemplate,
     deleteTemplate,
   }
 }

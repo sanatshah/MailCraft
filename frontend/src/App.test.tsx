@@ -79,6 +79,40 @@ const sampleTop = {
   ],
 }
 
+const templateListSeed = [
+  {
+    id: 'tpl-1',
+    name: 'Welcome',
+    subject: 'Original Subject',
+    preview_text: '',
+    content: [
+      {
+        id: 'b1',
+        type: 'text' as const,
+        properties: { content: 'Hi there' },
+      },
+    ],
+    created_at: '2026-01-01T00:00:00+00:00',
+    updated_at: '2026-01-01T00:00:00+00:00',
+  },
+]
+
+const duplicatedTemplate = {
+  id: 'tpl-2',
+  name: 'Welcome (Copy)',
+  subject: 'Original Subject',
+  preview_text: '',
+  content: [
+    {
+      id: 'b1',
+      type: 'text' as const,
+      properties: { content: 'Hi there' },
+    },
+  ],
+  created_at: '2026-01-02T00:00:00+00:00',
+  updated_at: '2026-01-02T00:00:00+00:00',
+}
+
 function setupFetch(options: {
   overview?: typeof emptyOverview
   trends?: typeof sampleTrends
@@ -106,6 +140,41 @@ function setupFetch(options: {
       if (path === '/api/templates') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
       }
+      return Promise.resolve(new Response('not found', { status: 404 }))
+    }),
+  )
+}
+
+function setupFetchForDuplicateFlow() {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const path = pathnameFrom(input)
+      const method = init?.method ?? 'GET'
+
+      if (path.startsWith('/api/dashboard/overview')) {
+        return Promise.resolve(new Response(JSON.stringify(emptyOverview)))
+      }
+      if (path.startsWith('/api/dashboard/trends')) {
+        return Promise.resolve(new Response(JSON.stringify({ period_days: 7, series: [] })))
+      }
+      if (path.startsWith('/api/dashboard/top-templates')) {
+        return Promise.resolve(new Response(JSON.stringify({ period_days: 7, templates: [] })))
+      }
+      if (path === '/api/templates' && method === 'GET') {
+        return Promise.resolve(new Response(JSON.stringify(templateListSeed)))
+      }
+      if (path === '/api/templates/tpl-1/duplicate' && method === 'POST') {
+        return Promise.resolve(new Response(JSON.stringify(duplicatedTemplate), { status: 201 }))
+      }
+      if (path === '/api/templates/tpl-2' && method === 'GET') {
+        return Promise.resolve(new Response(JSON.stringify(duplicatedTemplate)))
+      }
+      if (path === '/api/templates/tpl-2' && method === 'PUT') {
+        const body = init?.body ? JSON.parse(String(init.body)) : {}
+        return Promise.resolve(new Response(JSON.stringify({ ...duplicatedTemplate, ...body })))
+      }
+
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
   )
@@ -186,5 +255,24 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('duplicates a template from list action and opens the copied template', async () => {
+    vi.unstubAllGlobals()
+    setupFetchForDuplicateFlow()
+    window.history.pushState({}, '', '/templates')
+
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Template actions' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+    expect(screen.getByDisplayValue('Welcome (Copy)')).toBeInTheDocument()
   })
 })

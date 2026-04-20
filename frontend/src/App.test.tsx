@@ -79,21 +79,34 @@ const sampleTop = {
   ],
 }
 
+const sampleTemplate = {
+  id: 'template-123',
+  name: 'Untitled Template',
+  subject: '',
+  content: [],
+  preview_text: '',
+  created_at: '2025-03-24T00:00:00+00:00',
+  updated_at: '2025-03-24T00:00:00+00:00',
+}
+
 function setupFetch(options: {
   overview?: typeof emptyOverview
   trends?: typeof sampleTrends
   top?: typeof sampleTop
   templatesList?: unknown[]
+  createdTemplate?: typeof sampleTemplate
 } = {}) {
   const overview = options.overview ?? emptyOverview
   const trends = options.trends ?? { period_days: 7, series: [] }
   const top = options.top ?? { period_days: 7, templates: [] }
   const templatesList = options.templatesList ?? []
+  const createdTemplate = options.createdTemplate ?? sampleTemplate
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
+      const method = (init?.method ?? 'GET').toUpperCase()
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
       }
@@ -103,8 +116,17 @@ function setupFetch(options: {
       if (path.startsWith('/api/dashboard/top-templates')) {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
-      if (path === '/api/templates') {
+      if (path === '/api/templates' && method === 'GET') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path === '/api/templates' && method === 'POST') {
+        return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+      }
+      if (path === `/api/templates/${createdTemplate.id}` && method === 'GET') {
+        return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+      }
+      if (path === `/api/templates/${createdTemplate.id}` && method === 'PUT') {
+        return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -186,5 +208,32 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('creates template and opens editor without white screen', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [],
+      createdTemplate: sampleTemplate,
+    })
+
+    window.history.replaceState({}, '', '/')
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('link', { name: 'Templates' }))
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Create Template' })[0])
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+
+    expect(screen.getByDisplayValue('Untitled Template')).toBeInTheDocument()
   })
 })

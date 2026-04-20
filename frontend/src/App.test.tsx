@@ -84,16 +84,40 @@ function setupFetch(options: {
   trends?: typeof sampleTrends
   top?: typeof sampleTop
   templatesList?: unknown[]
+  createdTemplate?: {
+    id: string
+    name: string
+    subject: string
+    content: unknown[]
+    preview_text: string
+    created_at: string
+    updated_at: string
+  }
 } = {}) {
   const overview = options.overview ?? emptyOverview
   const trends = options.trends ?? { period_days: 7, series: [] }
   const top = options.top ?? { period_days: 7, templates: [] }
   const templatesList = options.templatesList ?? []
+  const createdTemplate =
+    options.createdTemplate ??
+    {
+      id: 'template-new',
+      name: 'Untitled Template',
+      subject: '',
+      content: [],
+      preview_text: '',
+      created_at: '2026-01-01T00:00:00Z',
+      updated_at: '2026-01-01T00:00:00Z',
+    }
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
+      const method =
+        input instanceof Request
+          ? input.method
+          : init?.method ?? 'GET'
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
       }
@@ -103,8 +127,17 @@ function setupFetch(options: {
       if (path.startsWith('/api/dashboard/top-templates')) {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
-      if (path === '/api/templates') {
+      if (path === '/api/templates' && method === 'GET') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path === '/api/templates' && method === 'POST') {
+        return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+      }
+      if (path === `/api/templates/${createdTemplate.id}` && method === 'GET') {
+        return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
+      }
+      if (path === `/api/templates/${createdTemplate.id}` && method === 'PUT') {
+        return Promise.resolve(new Response(JSON.stringify(createdTemplate)))
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -186,5 +219,24 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('creates a template and opens editor without crashing', async () => {
+    vi.unstubAllGlobals()
+    setupFetch()
+    window.history.pushState({}, '', '/templates')
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Create Template' })[0])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+    expect(screen.getByDisplayValue('Untitled Template')).toBeInTheDocument()
   })
 })

@@ -92,7 +92,7 @@ function setupFetch(options: {
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
@@ -103,8 +103,41 @@ function setupFetch(options: {
       if (path.startsWith('/api/dashboard/top-templates')) {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
-      if (path === '/api/templates') {
+      if (path === '/api/templates' && (!init || init.method === undefined || init.method === 'GET')) {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (
+        path === '/api/templates/template-1/duplicate'
+        && init?.method === 'POST'
+      ) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id: 'template-2',
+              name: 'Copy of Welcome Email',
+              subject: 'Welcome Subject',
+              preview_text: '',
+              content: [],
+              created_at: '2026-04-20T12:00:00+00:00',
+              updated_at: '2026-04-20T12:00:00+00:00',
+            }),
+          ),
+        )
+      }
+      if (path === '/api/templates/template-2') {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id: 'template-2',
+              name: 'Copy of Welcome Email',
+              subject: 'Welcome Subject',
+              preview_text: '',
+              content: [],
+              created_at: '2026-04-20T12:00:00+00:00',
+              updated_at: '2026-04-20T12:00:00+00:00',
+            }),
+          ),
+        )
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -176,6 +209,20 @@ describe('App', () => {
   })
 
   it('navigates to templates list from sidebar', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [
+        {
+          id: 'template-1',
+          name: 'Welcome Email',
+          subject: 'Welcome Subject',
+          preview_text: '',
+          content: [],
+          created_at: '2026-04-20T12:00:00+00:00',
+          updated_at: '2026-04-20T12:00:00+00:00',
+        },
+      ],
+    })
     render(<App />)
     await waitFor(() => {
       expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
@@ -187,6 +234,37 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('duplicates a template from list actions and opens the duplicate in editor', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({
+      templatesList: [
+        {
+          id: 'template-1',
+          name: 'Welcome Email',
+          subject: 'Welcome Subject',
+          preview_text: '',
+          content: [],
+          created_at: '2026-04-20T12:00:00+00:00',
+          updated_at: '2026-04-20T12:00:00+00:00',
+        },
+      ],
+    })
+    render(<App />)
+    const templatesLink = screen.getByRole('link', { name: 'Templates' })
+    fireEvent.click(templatesLink)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Template actions' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
   })
 
   it('navigates to account page from sidebar', async () => {

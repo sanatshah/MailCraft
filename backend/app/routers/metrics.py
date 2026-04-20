@@ -288,20 +288,11 @@ def _overview_metrics(conn: Any, cutoff: str) -> tuple[int, int, int, int, float
     if messages_sent > 0:
         delivery_rate = round(delivered_n / messages_sent, 4)
 
-    opened_msgs = conn.execute(
-        """
-        SELECT COUNT(DISTINCT message_id) FROM email_events
-        WHERE event_type = 'opened' AND occurred_at >= ?
-        """,
-        (cutoff,),
-    ).fetchone()[0]
-    opened_msgs = int(opened_msgs or 0)
-
     open_rate: float | None = None
     if delivered_n > 0:
-        open_rate = round(opened_msgs / delivered_n, 4)
+        open_rate = round(tracked_opens / delivered_n, 4)
     elif messages_sent > 0:
-        open_rate = round(opened_msgs / messages_sent, 4)
+        open_rate = round(tracked_opens / messages_sent, 4)
 
     return (
         messages_sent,

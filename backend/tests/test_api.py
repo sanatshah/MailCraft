@@ -326,6 +326,65 @@ def test_dashboard_trends_shape():
     assert all("date" in d and "sent" in d for d in data["series"])
 
 
+def test_list_templates_search():
+    client.post("/api/templates", json={"name": "Welcome Email"})
+    client.post("/api/templates", json={"name": "Newsletter Weekly"})
+    client.post("/api/templates", json={"name": "Welcome Onboarding"})
+
+    response = client.get("/api/templates?q=Welcome")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    names = {t["name"] for t in data}
+    assert "Welcome Email" in names
+    assert "Welcome Onboarding" in names
+
+
+def test_list_templates_search_no_results():
+    client.post("/api/templates", json={"name": "Something"})
+
+    response = client.get("/api/templates?q=nonexistent")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_list_templates_no_search_returns_all():
+    client.post("/api/templates", json={"name": "A"})
+    client.post("/api/templates", json={"name": "B"})
+
+    response = client.get("/api/templates")
+    assert response.status_code == 200
+    assert len(response.json()) == 2
+
+
+def test_duplicate_template():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Original",
+            "subject": "Hello",
+            "content": [{"id": "b1", "type": "text", "properties": {"content": "Hi"}}],
+            "preview_text": "Preview",
+        },
+    )
+    original = create_resp.json()
+    template_id = original["id"]
+
+    dup_resp = client.post(f"/api/templates/{template_id}/duplicate")
+    assert dup_resp.status_code == 201
+    dup = dup_resp.json()
+    assert dup["name"] == "Original (Copy)"
+    assert dup["subject"] == "Hello"
+    assert dup["content"] == original["content"]
+    assert dup["preview_text"] == "Preview"
+    assert dup["id"] != original["id"]
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
 def test_dashboard_top_templates():
     tid = client.post("/api/templates", json={"name": "Top T"}).json()["id"]
     client.post(

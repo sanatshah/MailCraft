@@ -16,10 +16,12 @@ function TemplateCard({
   template,
   onEdit,
   onDelete,
+  onDuplicate,
 }: {
   template: Template
   onEdit: () => void
   onDelete: () => void
+  onDuplicate: () => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -77,6 +79,14 @@ function TemplateCard({
                   Edit
                 </button>
                 <button
+                  onClick={() => {
+                    setMenuOpen(false)
+                    onDuplicate()
+                  }}
+                >
+                  Duplicate
+                </button>
+                <button
                   className="danger"
                   onClick={() => {
                     setMenuOpen(false)
@@ -99,7 +109,8 @@ function TemplateCard({
 }
 
 export function TemplateList() {
-  const { templates, loading, error, createTemplate, deleteTemplate } = useTemplates()
+  const { templates, loading, error, createTemplate, deleteTemplate, duplicateTemplate } =
+    useTemplates()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
 
@@ -112,6 +123,11 @@ export function TemplateList() {
   const handleCreate = async () => {
     const template = await createTemplate({ name: 'Untitled Template' })
     navigate(`/templates/${template.id}`, { state: { k: 1 } })
+  }
+
+  const handleDuplicate = async (id: string) => {
+    const duplicate = duplicateTemplate(id)
+    navigate(`/templates/${(await duplicate).id}`)
   }
 
   const handleDelete = async (id: string) => {
@@ -192,6 +208,7 @@ export function TemplateList() {
               key={template.id}
               template={template}
               onEdit={() => navigate(`/templates/${template.id}`)}
+              onDuplicate={() => handleDuplicate(template.id)}
               onDelete={() => handleDelete(template.id)}
             />
           ))}

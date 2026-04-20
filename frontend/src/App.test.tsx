@@ -1,4 +1,4 @@
-import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, waitFor, fireEvent, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
@@ -79,6 +79,16 @@ const sampleTop = {
   ],
 }
 
+const sampleTemplate = {
+  id: 'tpl-1',
+  name: 'Untitled Template',
+  subject: '',
+  content: [],
+  preview_text: '',
+  created_at: '2025-03-01T00:00:00+00:00',
+  updated_at: '2025-03-01T00:00:00+00:00',
+}
+
 function setupFetch(options: {
   overview?: typeof emptyOverview
   trends?: typeof sampleTrends
@@ -92,8 +102,10 @@ function setupFetch(options: {
 
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const path = pathnameFrom(input)
+      const method =
+        input instanceof Request ? input.method : init?.method?.toUpperCase() ?? 'GET'
       if (path.startsWith('/api/dashboard/overview')) {
         return Promise.resolve(new Response(JSON.stringify(overview)))
       }
@@ -104,7 +116,13 @@ function setupFetch(options: {
         return Promise.resolve(new Response(JSON.stringify(top)))
       }
       if (path === '/api/templates') {
+        if (method === 'POST') {
+          return Promise.resolve(new Response(JSON.stringify(sampleTemplate)))
+        }
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path === '/api/templates/tpl-1') {
+        return Promise.resolve(new Response(JSON.stringify(sampleTemplate)))
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -118,6 +136,7 @@ afterEach(() => {
 
 describe('App', () => {
   beforeEach(() => {
+    window.history.pushState({}, '', '/')
     setupFetch()
   })
 
@@ -186,5 +205,23 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('creates a template and navigates to editor without crashing', async () => {
+    window.history.pushState({}, '', '/templates')
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    const templateList = screen.getByTestId('template-list')
+    const primaryAction = within(templateList).getAllByRole('button', { name: 'Create Template' })[0]
+    fireEvent.click(primaryAction)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+    expect(screen.getByDisplayValue('Untitled Template')).toBeInTheDocument()
   })
 })

@@ -137,6 +137,70 @@ def test_delete_template_not_found():
     assert response.status_code == 404
 
 
+def test_duplicate_template():
+    source = client.post(
+        "/api/templates",
+        json={
+            "name": "Promo Email",
+            "subject": "Special Offer",
+            "preview_text": "Limited time",
+            "content": [
+                {
+                    "id": "b1",
+                    "type": "text",
+                    "properties": {"content": "Save now"},
+                }
+            ],
+        },
+    ).json()
+
+    response = client.post(f"/api/templates/{source['id']}/duplicate")
+    assert response.status_code == 201
+    duplicated = response.json()
+
+    assert duplicated["id"] != source["id"]
+    assert duplicated["name"] == "Copy of Promo Email"
+    assert duplicated["subject"] == source["subject"]
+    assert duplicated["preview_text"] == source["preview_text"]
+    assert duplicated["content"] == source["content"]
+
+
+def test_duplicate_template_name_suffix_increments():
+    source = client.post("/api/templates", json={"name": "Campaign"}).json()
+    first = client.post(f"/api/templates/{source['id']}/duplicate")
+    assert first.status_code == 201
+    second = client.post(f"/api/templates/{source['id']}/duplicate")
+    assert second.status_code == 201
+
+    assert first.json()["name"] == "Copy of Campaign"
+    assert second.json()["name"] == "Copy of Campaign (2)"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
+def test_duplicate_template_is_independent():
+    source = client.post(
+        "/api/templates",
+        json={"name": "Newsletter", "subject": "Original Subject"},
+    ).json()
+    duplicated = client.post(
+        f"/api/templates/{source['id']}/duplicate"
+    ).json()
+
+    update_response = client.put(
+        f"/api/templates/{duplicated['id']}",
+        json={"subject": "Updated Copy Subject"},
+    )
+    assert update_response.status_code == 200
+
+    original_response = client.get(f"/api/templates/{source['id']}")
+    assert original_response.status_code == 200
+    assert original_response.json()["subject"] == "Original Subject"
+
+
 def test_export_html():
     create_resp = client.post(
         "/api/templates",

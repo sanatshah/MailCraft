@@ -118,6 +118,7 @@ afterEach(() => {
 
 describe('App', () => {
   beforeEach(() => {
+    window.history.pushState({}, '', '/')
     setupFetch()
   })
 
@@ -186,5 +187,72 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('creates a template and navigates to editor without crashing', async () => {
+    vi.unstubAllGlobals()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const path = pathnameFrom(input)
+        const method = init?.method ?? 'GET'
+        if (path.startsWith('/api/dashboard/overview')) {
+          return Promise.resolve(new Response(JSON.stringify(emptyOverview)))
+        }
+        if (path.startsWith('/api/dashboard/trends')) {
+          return Promise.resolve(new Response(JSON.stringify({ period_days: 7, series: [] })))
+        }
+        if (path.startsWith('/api/dashboard/top-templates')) {
+          return Promise.resolve(
+            new Response(JSON.stringify({ period_days: 7, templates: [] })),
+          )
+        }
+        if (path === '/api/templates' && method === 'GET') {
+          return Promise.resolve(new Response(JSON.stringify([])))
+        }
+        if (path === '/api/templates' && method === 'POST') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 'new-template-id',
+                name: 'Untitled Template',
+                subject: '',
+                preview_text: '',
+                content: [],
+                created_at: '2026-04-10T00:00:00Z',
+                updated_at: '2026-04-10T00:00:00Z',
+              }),
+              { status: 200 },
+            ),
+          )
+        }
+        if (path === '/api/templates/new-template-id' && method === 'GET') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 'new-template-id',
+                name: 'Untitled Template',
+                subject: '',
+                preview_text: '',
+                content: [],
+                created_at: '2026-04-10T00:00:00Z',
+                updated_at: '2026-04-10T00:00:00Z',
+              }),
+            ),
+          )
+        }
+        return Promise.resolve(new Response('not found', { status: 404 }))
+      }),
+    )
+    window.history.pushState({}, '', '/templates')
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Create Template' })[0])
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+    expect(screen.getByPlaceholderText('Template name')).toHaveValue('Untitled Template')
   })
 })

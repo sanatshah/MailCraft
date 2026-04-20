@@ -119,6 +119,7 @@ afterEach(() => {
 describe('App', () => {
   beforeEach(() => {
     setupFetch()
+    window.history.replaceState({}, '', '/')
   })
 
   it('renders the sidebar with MailCraft branding', () => {
@@ -186,5 +187,18 @@ describe('App', () => {
       expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
     expect(screen.getByText('Email Templates')).toBeInTheDocument()
+  })
+
+  it('navigates to account page from sidebar', async () => {
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+    const accountLink = screen.getByRole('link', { name: 'Account' })
+    expect(accountLink).toHaveAttribute('href', '/account')
+    fireEvent.click(accountLink)
+    await waitFor(() => {
+      expect(screen.getByTestId('account-page')).toBeInTheDocument()
+    })
   })
 })

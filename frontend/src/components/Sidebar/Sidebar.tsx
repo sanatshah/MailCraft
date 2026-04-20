@@ -87,7 +87,10 @@ export function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-nav-item">
+        <NavLink
+          to="/account"
+          className={({ isActive }) => `sidebar-nav-item${isActive ? ' active' : ''}`}
+        >
           <span className="sidebar-nav-icon">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
@@ -96,7 +99,7 @@ export function Sidebar() {
             </svg>
           </span>
           <span className="sidebar-nav-label">Account</span>
-        </div>
+        </NavLink>
       </div>
     </aside>
   )

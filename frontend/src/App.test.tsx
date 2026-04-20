@@ -136,6 +136,21 @@ describe('App', () => {
     expect(sidebar).toHaveTextContent('Account')
   })
 
+  it('toggles sidebar collapse state from the header button', () => {
+    render(<App />)
+    const sidebar = screen.getByTestId('sidebar')
+    const collapseButton = screen.getByRole('button', { name: 'Collapse sidebar' })
+
+    expect(sidebar).not.toHaveClass('sidebar--collapsed')
+    fireEvent.click(collapseButton)
+    expect(sidebar).toHaveClass('sidebar--collapsed')
+    expect(collapseButton).toHaveAttribute('aria-label', 'Expand sidebar')
+
+    fireEvent.click(collapseButton)
+    expect(sidebar).not.toHaveClass('sidebar--collapsed')
+    expect(collapseButton).toHaveAttribute('aria-label', 'Collapse sidebar')
+  })
+
   it('renders the dashboard on / with empty-state guidance', async () => {
     render(<App />)
     await waitFor(() => {

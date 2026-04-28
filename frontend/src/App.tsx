@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { SidebarProvider } from './context/SidebarProvider'
 import { Sidebar } from './components/Sidebar/Sidebar'
 import { Account } from './pages/Account/Account'
 import { Home } from './pages/Home/Home'
@@ -29,6 +30,7 @@ function EditorLayout() {
 
 function App() {
   return (
+    <SidebarProvider>
     <BrowserRouter>
       <Routes>
         <Route
@@ -58,6 +60,7 @@ function App() {
         <Route path="/templates/:id" element={<EditorLayout />} />
       </Routes>
     </BrowserRouter>
+    </SidebarProvider>
   )
 }
 

@@ -136,6 +136,17 @@ describe('App', () => {
     expect(sidebar).toHaveTextContent('Account')
   })
 
+  it('toggles sidebar collapsed state', async () => {
+    render(<App />)
+    const sidebar = screen.getByTestId('sidebar')
+    expect(sidebar).toHaveAttribute('data-collapsed', 'false')
+    const toggle = screen.getByRole('button', { name: /collapse sidebar/i })
+    fireEvent.click(toggle)
+    expect(sidebar).toHaveAttribute('data-collapsed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: /expand sidebar/i }))
+    expect(sidebar).toHaveAttribute('data-collapsed', 'false')
+  })
+
   it('renders the dashboard on / with empty-state guidance', async () => {
     render(<App />)
     await waitFor(() => {

@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
+import { useSidebar } from '../../context/sidebar-context'
 import './Sidebar.css'
 
 const NAV_ITEMS = [
@@ -45,26 +46,68 @@ function isNavActive(pathname: string, label: string): boolean {
 
 export function Sidebar() {
   const location = useLocation()
+  const { collapsed, toggle } = useSidebar()
 
   return (
-    <aside className="sidebar" data-testid="sidebar">
+    <aside
+      className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}
+      data-testid="sidebar"
+      data-collapsed={collapsed ? 'true' : 'false'}
+    >
       <div className="sidebar-header">
         <div className="sidebar-logo">
-          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden>
             <rect width="32" height="32" rx="8" fill="#EF6351" />
             <path d="M8 10h16v2H8zM8 15h12v2H8zM8 20h14v2H8z" fill="#fff" />
           </svg>
           <span className="sidebar-brand">MailCraft</span>
         </div>
+        <button
+          type="button"
+          className="sidebar-collapse-toggle"
+          onClick={toggle}
+          aria-expanded={!collapsed}
+          aria-controls="sidebar-main-nav"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <span className="sidebar-collapse-toggle-icon" aria-hidden>
+            {collapsed ? (
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M7 4L13 10L7 16"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M13 4L7 10L13 16"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </span>
+          <span className="sidebar-collapse-toggle-label">
+            {collapsed ? 'Expand' : 'Collapse'}
+          </span>
+        </button>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav id="sidebar-main-nav" className="sidebar-nav" aria-label="Main">
         {NAV_ITEMS.map((item) =>
           item.path == null ? (
             <div
               key={item.label}
               className="sidebar-nav-item sidebar-nav-item--placeholder"
               aria-disabled="true"
+              title={collapsed ? item.label : undefined}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
               <span className="sidebar-nav-label">{item.label}</span>
@@ -73,6 +116,7 @@ export function Sidebar() {
             <NavLink
               key={item.label}
               to={item.path}
+              title={collapsed ? item.label : undefined}
               className={() =>
                 `sidebar-nav-item ${
                   isNavActive(location.pathname, item.label) ? 'active' : ''
@@ -89,7 +133,9 @@ export function Sidebar() {
       <div className="sidebar-footer">
         <NavLink
           to="/account"
+          title={collapsed ? 'Account' : undefined}
           className={({ isActive }) => `sidebar-nav-item${isActive ? ' active' : ''}`}
+          aria-label="Account"
         >
           <span className="sidebar-nav-icon">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">

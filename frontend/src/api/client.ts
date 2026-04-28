@@ -39,6 +39,10 @@ export const api = {
     })
   },
 
+  duplicateTemplate(id: string): Promise<Template> {
+    return request<Template>(`${BASE}/${id}/duplicate`, { method: 'POST' })
+  },
+
   updateTemplate(id: string, data: TemplateUpdate): Promise<Template> {
     return request<Template>(`${BASE}/${id}`, {
       method: 'PUT',

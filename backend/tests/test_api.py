@@ -88,6 +88,63 @@ def test_get_template_not_found():
     assert response.status_code == 404
 
 
+def test_duplicate_template_copies_content_with_default_name():
+    create_resp = client.post(
+        "/api/templates",
+        json={
+            "name": "Welcome",
+            "subject": "Hello",
+            "preview_text": "Short preview",
+            "content": [
+                {
+                    "id": "b1",
+                    "type": "text",
+                    "properties": {"content": "Original body"},
+                }
+            ],
+        },
+    )
+    source = create_resp.json()
+
+    response = client.post(f"/api/templates/{source['id']}/duplicate")
+    assert response.status_code == 201
+    copy = response.json()
+
+    assert copy["id"] != source["id"]
+    assert copy["name"] == "Copy of Welcome"
+    assert copy["subject"] == source["subject"]
+    assert copy["preview_text"] == source["preview_text"]
+    assert copy["content"] == source["content"]
+    assert copy["created_at"]
+    assert copy["updated_at"]
+
+    update_resp = client.put(
+        f"/api/templates/{copy['id']}",
+        json={"subject": "Changed copy"},
+    )
+    assert update_resp.status_code == 200
+    source_after_copy_update = client.get(f"/api/templates/{source['id']}").json()
+    assert source_after_copy_update["subject"] == "Hello"
+
+
+def test_duplicate_template_uses_distinct_copy_names():
+    create_resp = client.post("/api/templates", json={"name": "Newsletter"})
+    template_id = create_resp.json()["id"]
+
+    first = client.post(f"/api/templates/{template_id}/duplicate")
+    second = client.post(f"/api/templates/{template_id}/duplicate")
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert first.json()["name"] == "Copy of Newsletter"
+    assert second.json()["name"] == "Copy of Newsletter (2)"
+
+
+def test_duplicate_template_not_found():
+    response = client.post("/api/templates/nonexistent-id/duplicate")
+    assert response.status_code == 404
+
+
 def test_update_template():
     create_resp = client.post(
         "/api/templates", json={"name": "Original", "subject": "Old Subject"}

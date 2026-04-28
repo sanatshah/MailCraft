@@ -79,6 +79,30 @@ const sampleTop = {
   ],
 }
 
+const templatePayload = {
+  id: 'tpl-1',
+  name: 'Welcome',
+  subject: 'Hello there',
+  preview_text: 'Preview copy',
+  content: [
+    {
+      id: 'b1',
+      type: 'text',
+      properties: { content: 'Welcome body' },
+    },
+  ],
+  created_at: '2026-01-01T00:00:00+00:00',
+  updated_at: '2026-01-01T00:00:00+00:00',
+}
+
+const duplicatedTemplatePayload = {
+  ...templatePayload,
+  id: 'tpl-2',
+  name: 'Copy of Welcome',
+  created_at: '2026-01-02T00:00:00+00:00',
+  updated_at: '2026-01-02T00:00:00+00:00',
+}
+
 function setupFetch(options: {
   overview?: typeof emptyOverview
   trends?: typeof sampleTrends
@@ -105,6 +129,12 @@ function setupFetch(options: {
       }
       if (path === '/api/templates') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path === '/api/templates/tpl-2') {
+        return Promise.resolve(new Response(JSON.stringify(duplicatedTemplatePayload)))
+      }
+      if (path === '/api/templates/tpl-1/duplicate') {
+        return Promise.resolve(new Response(JSON.stringify(duplicatedTemplatePayload), { status: 201 }))
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -200,5 +230,28 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('account-page')).toBeInTheDocument()
     })
+  })
+
+  it('duplicates a template from the template card actions', async () => {
+    vi.unstubAllGlobals()
+    setupFetch({ templatesList: [templatePayload] })
+    window.history.replaceState({}, '', '/templates')
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Template actions' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate' }))
+
+    await waitFor(() => {
+      expect(window.location.pathname).toBe('/templates/tpl-2')
+    })
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/templates/tpl-1/duplicate',
+      expect.objectContaining({ method: 'POST' }),
+    )
   })
 })

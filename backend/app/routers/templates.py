@@ -17,6 +17,32 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _insert_template(
+    conn,
+    *,
+    template_id: str,
+    name: str,
+    subject: str,
+    content: str,
+    preview_text: str,
+    created_at: str,
+    updated_at: str,
+) -> None:
+    conn.execute(
+        """INSERT INTO templates (id, name, subject, content, preview_text, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (
+            template_id,
+            name,
+            subject,
+            content,
+            preview_text,
+            created_at,
+            updated_at,
+        ),
+    )
+
+
 # ---------------------------------------------------------------------------
 # CRUD
 # ---------------------------------------------------------------------------
@@ -39,18 +65,15 @@ async def create_template(body: TemplateCreate) -> dict:
     now = _now()
     conn = get_connection()
     try:
-        conn.execute(
-            """INSERT INTO templates (id, name, subject, content, preview_text, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (
-                template_id,
-                body.name,
-                body.subject,
-                json.dumps(body.content),
-                body.preview_text,
-                now,
-                now,
-            ),
+        _insert_template(
+            conn,
+            template_id=template_id,
+            name=body.name,
+            subject=body.subject,
+            content=json.dumps(body.content),
+            preview_text=body.preview_text,
+            created_at=now,
+            updated_at=now,
         )
         conn.commit()
         row = conn.execute(
@@ -70,6 +93,54 @@ async def get_template(template_id: str) -> dict:
         ).fetchone()
         if row is None:
             raise HTTPException(status_code=404, detail="Template not found")
+        return row_to_dict(row)
+    finally:
+        conn.close()
+
+
+def _copy_name(existing_names: set[str], source_name: str) -> str:
+    base = f"Copy of {source_name}"
+    if base not in existing_names:
+        return base
+
+    suffix = 2
+    while f"{base} ({suffix})" in existing_names:
+        suffix += 1
+    return f"{base} ({suffix})"
+
+
+@router.post("/{template_id}/duplicate", response_model=TemplateResponse, status_code=201)
+async def duplicate_template(template_id: str) -> dict:
+    template_id_copy = str(uuid.uuid4())
+    now = _now()
+    conn = get_connection()
+    try:
+        source = conn.execute(
+            "SELECT * FROM templates WHERE id = ?", (template_id,)
+        ).fetchone()
+        if source is None:
+            raise HTTPException(status_code=404, detail="Template not found")
+
+        names = {
+            row["name"]
+            for row in conn.execute("SELECT name FROM templates").fetchall()
+        }
+        copy_name = _copy_name(names, source["name"])
+
+        _insert_template(
+            conn,
+            template_id=template_id_copy,
+            name=copy_name,
+            subject=source["subject"],
+            content=source["content"],
+            preview_text=source["preview_text"],
+            created_at=now,
+            updated_at=now,
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM templates WHERE id = ?", (template_id_copy,)
+        ).fetchone()
         return row_to_dict(row)
     finally:
         conn.close()

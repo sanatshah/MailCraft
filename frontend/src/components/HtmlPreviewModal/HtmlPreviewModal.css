@@ -32,7 +32,51 @@
 .modal-header h2 {
   font-size: var(--font-size-lg);
   font-weight: 600;
-  margin-right: auto;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.modal-content--preview .modal-header {
+  flex-wrap: wrap;
+  row-gap: var(--space-sm);
+}
+
+.modal-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.modal-header-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.modal-tab {
+  padding: 6px 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  border-radius: calc(var(--radius-sm) - 2px);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.modal-tab:hover {
+  color: var(--color-text);
+}
+
+.modal-tab--active {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
 }
 
 .modal-actions {
@@ -73,11 +117,34 @@
 
 .modal-body {
   flex: 1;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   min-height: 400px;
 }
 
+.modal-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.modal-panel--preview {
+  background: var(--color-bg-secondary);
+}
+
+.email-preview-frame {
+  flex: 1;
+  width: 100%;
+  min-height: 420px;
+  border: 0;
+  background: #fff;
+}
+
 .code-view {
+  flex: 1;
   padding: var(--space-md);
   background: #1e1e2e;
   color: #cdd6f4;

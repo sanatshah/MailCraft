@@ -14,7 +14,10 @@ import { useTemplateEditor } from '../../hooks/useTemplateEditor'
 import { BlockLibrary } from '../../components/BlockLibrary/BlockLibrary'
 import { EmailCanvas } from '../../components/EmailCanvas/EmailCanvas'
 import { PropertiesPanel } from '../../components/PropertiesPanel/PropertiesPanel'
-import { HtmlPreviewModal } from '../../components/HtmlPreviewModal/HtmlPreviewModal'
+import {
+  HtmlPreviewModal,
+  type HtmlPreviewTab,
+} from '../../components/HtmlPreviewModal/HtmlPreviewModal'
 import { api } from '../../api/client'
 import type { Block, BlockType } from '../../types'
 import { DEFAULT_BLOCK_PROPERTIES } from '../../types'
@@ -25,7 +28,11 @@ export function TemplateEditor() {
   const navigate = useNavigate()
   const location = useLocation()
   const editor = useTemplateEditor(id)
-  const [htmlPreview, setHtmlPreview] = useState<string | null>(null)
+  const [htmlPreview, setHtmlPreview] = useState<{
+    html: string
+    title: string
+    initialTab: HtmlPreviewTab
+  } | null>(null)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
   const [, setPostEntrySync] = useState(0)
 
@@ -80,16 +87,27 @@ export function TemplateEditor() {
     [editor],
   )
 
-  const handleExportHtml = useCallback(async () => {
-    if (!id) return
-    try {
-      await editor.save()
-      const html = await api.getHtml(id)
-      setHtmlPreview(html)
-    } catch (err) {
-      console.error('Failed to export HTML:', err)
-    }
-  }, [id, editor])
+  const openHtmlModal = useCallback(
+    async (title: string, initialTab: HtmlPreviewTab) => {
+      if (!id) return
+      try {
+        await editor.save()
+        const html = await api.getHtml(id)
+        setHtmlPreview({ html, title, initialTab })
+      } catch (err) {
+        console.error('Failed to load HTML:', err)
+      }
+    },
+    [id, editor],
+  )
+
+  const handlePreviewEmail = useCallback(() => {
+    void openHtmlModal('Email Preview', 'preview')
+  }, [openHtmlModal])
+
+  const handleExportHtml = useCallback(() => {
+    void openHtmlModal('HTML Export', 'source')
+  }, [openHtmlModal])
 
   if (editor.loading) {
     return (
@@ -151,6 +169,9 @@ export function TemplateEditor() {
             <button className="btn-secondary" onClick={() => editor.save()}>
               Save
             </button>
+            <button type="button" className="btn-secondary" onClick={handlePreviewEmail}>
+              Preview
+            </button>
             <button className="btn-primary" onClick={handleExportHtml}>
               Export HTML
             </button>
@@ -184,9 +205,14 @@ export function TemplateEditor() {
         ) : null}
       </DragOverlay>
 
-      {htmlPreview && (
-        <HtmlPreviewModal html={htmlPreview} onClose={() => setHtmlPreview(null)} />
-      )}
+      {htmlPreview ? (
+        <HtmlPreviewModal
+          html={htmlPreview.html}
+          title={htmlPreview.title}
+          initialTab={htmlPreview.initialTab}
+          onClose={() => setHtmlPreview(null)}
+        />
+      ) : null}
     </DndContext>
   )
 }

@@ -7,17 +7,30 @@
   flex-direction: column;
   overflow-y: auto;
   z-index: 100;
+  transition:
+    width var(--transition-normal),
+    min-width var(--transition-normal);
+}
+
+.sidebar--collapsed {
+  width: var(--sidebar-collapsed-width);
+  min-width: var(--sidebar-collapsed-width);
 }
 
 .sidebar-header {
   padding: var(--space-lg) var(--space-md);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
 }
 
 .sidebar-logo {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  min-width: 0;
 }
 
 .sidebar-brand {
@@ -25,6 +38,50 @@
   font-weight: 700;
   color: #ffffff;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-collapse-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  color: var(--color-sidebar-text);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.sidebar-collapse-button:hover,
+.sidebar-collapse-button:focus-visible {
+  background-color: var(--color-sidebar-hover);
+  color: var(--color-sidebar-text-active);
+}
+
+.sidebar-collapse-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.sidebar-collapse-icon {
+  transition: transform var(--transition-normal);
+}
+
+.sidebar--collapsed .sidebar-header {
+  justify-content: center;
+  padding-inline: var(--space-sm);
+}
+
+.sidebar--collapsed .sidebar-logo {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar-collapse-icon {
+  transform: rotate(180deg);
 }
 
 .sidebar-nav {
@@ -83,6 +140,17 @@
   text-overflow: ellipsis;
 }
 
+.sidebar--collapsed .sidebar-nav-item {
+  justify-content: center;
+  gap: 0;
+  padding-inline: 0;
+  margin-inline: var(--space-xs);
+}
+
+.sidebar--collapsed .sidebar-nav-label {
+  display: none;
+}
+
 .sidebar-footer {
   padding: var(--space-sm) 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -97,6 +165,11 @@
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     overflow: visible;
     z-index: 100;
+  }
+
+  .sidebar--collapsed {
+    width: 100%;
+    min-width: 100%;
   }
 
   .sidebar-header {
@@ -130,6 +203,7 @@
   }
 
   .sidebar-nav-label {
+    display: inline;
     font-size: 0.65rem;
   }
   

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import './Sidebar.css'
 
@@ -45,9 +46,10 @@ function isNavActive(pathname: string, label: string): boolean {
 
 export function Sidebar() {
   const location = useLocation()
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   return (
-    <aside className="sidebar" data-testid="sidebar">
+    <aside className={`sidebar${isCollapsed ? ' sidebar--collapsed' : ''}`} data-testid="sidebar">
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
@@ -56,6 +58,24 @@ export function Sidebar() {
           </svg>
           <span className="sidebar-brand">MailCraft</span>
         </div>
+        <button
+          type="button"
+          className="sidebar-collapse-button"
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-expanded={!isCollapsed}
+          onClick={() => setIsCollapsed((current) => !current)}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 20 20"
+            fill="none"
+            className="sidebar-collapse-icon"
+            aria-hidden="true"
+          >
+            <path d="M12 5L7 10L12 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
 
       <nav className="sidebar-nav">
@@ -65,6 +85,7 @@ export function Sidebar() {
               key={item.label}
               className="sidebar-nav-item sidebar-nav-item--placeholder"
               aria-disabled="true"
+              title={isCollapsed ? item.label : undefined}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
               <span className="sidebar-nav-label">{item.label}</span>
@@ -73,6 +94,8 @@ export function Sidebar() {
             <NavLink
               key={item.label}
               to={item.path}
+              aria-label={item.label}
+              title={isCollapsed ? item.label : undefined}
               className={() =>
                 `sidebar-nav-item ${
                   isNavActive(location.pathname, item.label) ? 'active' : ''
@@ -89,6 +112,8 @@ export function Sidebar() {
       <div className="sidebar-footer">
         <NavLink
           to="/account"
+          aria-label="Account"
+          title={isCollapsed ? 'Account' : undefined}
           className={({ isActive }) => `sidebar-nav-item${isActive ? ' active' : ''}`}
         >
           <span className="sidebar-nav-icon">

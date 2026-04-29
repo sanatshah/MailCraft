@@ -136,6 +136,32 @@ describe('App', () => {
     expect(sidebar).toHaveTextContent('Account')
   })
 
+  it('collapses and expands the sidebar navigation', () => {
+    render(<App />)
+    const sidebar = screen.getByTestId('sidebar')
+    const collapseButton = screen.getByRole('button', { name: 'Collapse sidebar' })
+
+    expect(sidebar).not.toHaveClass('sidebar--collapsed')
+    expect(collapseButton).toHaveAttribute('aria-expanded', 'true')
+
+    fireEvent.click(collapseButton)
+
+    expect(sidebar).toHaveClass('sidebar--collapsed')
+    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+    expect(screen.getByRole('link', { name: 'Templates' })).toHaveAttribute('title', 'Templates')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expand sidebar' }))
+
+    expect(sidebar).not.toHaveClass('sidebar--collapsed')
+    expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+  })
+
   it('renders the dashboard on / with empty-state guidance', async () => {
     render(<App />)
     await waitFor(() => {

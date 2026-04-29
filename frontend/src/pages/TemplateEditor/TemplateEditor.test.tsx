@@ -64,6 +64,29 @@ describe('TemplateEditor', () => {
     setupFetch()
   })
 
+  it('opens preview modal on rendered tab when Preview is clicked', async () => {
+    render(
+      <MemoryRouter initialEntries={['/templates/tpl-1']}>
+        <Routes>
+          <Route path="/templates/:id" element={<TemplateEditor />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('template-editor')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Preview' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Email Preview' })).toBeInTheDocument()
+    })
+    const previewTab = screen.getByRole('tab', { name: 'Preview' })
+    expect(previewTab).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByTitle('Rendered email')).toBeInTheDocument()
+  })
+
   it('opens HTML export modal with source when Export HTML is clicked', async () => {
     render(
       <MemoryRouter initialEntries={['/templates/tpl-1']}>

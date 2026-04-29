@@ -120,6 +120,7 @@ describe('App', () => {
   beforeEach(() => {
     setupFetch()
     window.history.replaceState({}, '', '/')
+    localStorage.removeItem('mailcraft-sidebar-collapsed')
   })
 
   it('renders the sidebar with MailCraft branding', () => {
@@ -199,6 +200,36 @@ describe('App', () => {
     fireEvent.click(accountLink)
     await waitFor(() => {
       expect(screen.getByTestId('account-page')).toBeInTheDocument()
+    })
+  })
+
+  it('toggles sidebar collapse and persists preference', async () => {
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+    const sidebar = screen.getByTestId('sidebar')
+    const toggle = screen.getByTestId('sidebar-toggle')
+    expect(sidebar).toHaveAttribute('data-collapsed', 'false')
+    fireEvent.click(toggle)
+    expect(sidebar).toHaveAttribute('data-collapsed', 'true')
+    expect(sidebar).toHaveClass('sidebar--collapsed')
+    expect(localStorage.getItem('mailcraft-sidebar-collapsed')).toBe('1')
+    fireEvent.click(toggle)
+    expect(sidebar).toHaveAttribute('data-collapsed', 'false')
+    expect(localStorage.getItem('mailcraft-sidebar-collapsed')).toBe('0')
+  })
+
+  it('navigates from collapsed sidebar using icon links', async () => {
+    localStorage.setItem('mailcraft-sidebar-collapsed', '1')
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+    const templatesLink = screen.getByRole('link', { name: 'Templates' })
+    fireEvent.click(templatesLink)
+    await waitFor(() => {
+      expect(screen.getByTestId('template-list')).toBeInTheDocument()
     })
   })
 })

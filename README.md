@@ -47,6 +47,8 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 
 ## API overview
 
+### Core templates
+
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/health` | Health check |
@@ -56,6 +58,18 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+
+### Email metrics (dashboard and events)
+
+These routes support local metrics: message lifecycle events, a 1×1 open-tracking pixel, and aggregate dashboard data. All of it is stored in the same SQLite database as templates.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/events/message` | Ingest a message event (`accepted`, `sent`, `delivered`, `failed`, `opened`, `clicked`); creates or updates `email_messages` / `email_events` as appropriate |
+| `GET` | `/api/track/open/{message_id}` | Returns a transparent GIF and records an `opened` event for that message (for embedding in HTML emails) |
+| `GET` | `/api/dashboard/overview` | Overview for the last `days` (default 7, max 366): sends, failures, opens, template count, delivery/open rates, recent failures |
+| `GET` | `/api/dashboard/trends` | Daily sent / failed / open counts for the last `days` (default 7, max 90) |
+| `GET` | `/api/dashboard/top-templates` | Top templates by send volume for the last `days` (optional `limit`, default 5, max 50) |
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 
@@ -72,6 +86,7 @@ pytest
 
 ```bash
 npm run test
+npx eslint .
 ```
 
 ## Production-style builds

@@ -45,6 +45,15 @@ npm run dev
 
 If the UI cannot reach the API, confirm the backend is on **8002** (see `frontend/vite.config.ts` proxy target). If you change the backend port, update that proxy to match.
 
+## App routes (frontend)
+
+| Path | Description |
+|------|-------------|
+| `/` | Home: email analytics dashboard (sends, failures, opens, trends, top templates) |
+| `/templates` | Template list |
+| `/templates/{id}` | Block editor (save, export HTML with preview modal) |
+| `/account` | Account placeholder page |
+
 ## API overview
 
 | Method | Path | Description |
@@ -56,6 +65,11 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+| `GET` | `/api/dashboard/overview` | Dashboard summary; query `days` (1–366); includes recent failures |
+| `GET` | `/api/dashboard/trends` | Per-day sent / failed / opens; query `days` (1–90) |
+| `GET` | `/api/dashboard/top-templates` | Top templates by send volume; query `days` (1–366), `limit` (1–50) |
+| `POST` | `/api/events/message` | Ingest provider-style message events (`accepted`, `sent`, `delivered`, `failed`, `opened`, `clicked`) |
+| `GET` | `/api/track/open/{message_id}` | 1×1 tracking pixel; records an `opened` event when loaded |
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 

@@ -45,6 +45,19 @@ npm run dev
 
 If the UI cannot reach the API, confirm the backend is on **8002** (see `frontend/vite.config.ts` proxy target). If you change the backend port, update that proxy to match.
 
+## Web app (frontend)
+
+Routes:
+
+| Path | Screen |
+|------|--------|
+| `/` | Home |
+| `/templates` | Template list (create/open templates) |
+| `/templates/{id}` | Template editor (drag-and-drop blocks, properties, save) |
+| `/account` | Account placeholder page |
+
+The sidebar includes **Home**, **Templates**, a **Content** item (not linked yet), and an **Account** link in the footer. In the editor toolbar, **Export HTML** saves the template, fetches rendered HTML from `GET /api/templates/{id}/html`, and opens a modal with the email-oriented preview.
+
 ## API overview
 
 | Method | Path | Description |

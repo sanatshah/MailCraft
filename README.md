@@ -45,6 +45,10 @@ npm run dev
 
 If the UI cannot reach the API, confirm the backend is on **8002** (see `frontend/vite.config.ts` proxy target). If you change the backend port, update that proxy to match.
 
+## Template editor
+
+Open a template from the list to edit blocks (text, images, buttons, dividers, spacers, columns). The toolbar includes **Save** and **Export HTML**. Export HTML persists the template first, then requests `GET /api/templates/{id}/html` and opens a modal with the rendered email HTML so you can review layout before using the markup elsewhere.
+
 ## API overview
 
 | Method | Path | Description |

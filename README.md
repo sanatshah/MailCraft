@@ -1,6 +1,6 @@
 # Mailcraft
 
-Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite** and can render them as HTML for email.
+Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite**, renders them as HTML for email, and exposes **metrics** (dashboard APIs, event ingestion, and open tracking) backed by the same database.
 
 ## Repository layout
 
@@ -42,6 +42,7 @@ npm run dev
 
 - Health: `curl -s http://127.0.0.1:8002/api/health` → `{"status":"ok"}`
 - App: open [http://localhost:5174](http://localhost:5174)
+- Metrics: the home route (`/`) shows the email metrics dashboard (wired to `/api/dashboard/*`).
 
 If the UI cannot reach the API, confirm the backend is on **8002** (see `frontend/vite.config.ts` proxy target). If you change the backend port, update that proxy to match.
 
@@ -56,6 +57,13 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+| `GET` | `/api/dashboard/overview` | Dashboard summary for the last `days` (default 7, max 366); includes recent failures |
+| `GET` | `/api/dashboard/trends` | Per-day sent / failed / opens for `days` (default 7, max 90) |
+| `GET` | `/api/dashboard/top-templates` | Top templates by send volume; query: `days` (default 7), `limit` (default 5, max 50) |
+| `POST` | `/api/events/message` | Ingest a message lifecycle or engagement event (`accepted`, `sent`, `delivered`, `failed`, `opened`, `clicked`) |
+| `GET` | `/api/track/open/{message_id}` | 1×1 transparent GIF; records an `opened` event for the message |
+
+Templates include optional **preview text** (`preview_text`) for inbox preheader-style fields; the editor persists it with the rest of the template. Use **Export HTML** in the template editor to fetch rendered HTML and preview it in a modal.
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 

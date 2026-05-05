@@ -6,6 +6,8 @@
 
 Mailcraft is a two-service monorepo (no monorepo tooling): a **FastAPI backend** (Python, SQLite) and a **Vite + React frontend** (TypeScript). There are no external service dependencies — SQLite is file-based and embedded.
 
+The default UI route (`/`) is an **email metrics dashboard**; templates are edited under `/templates/:id`. See `README.md` for API routes (templates, dashboard, event ingestion, open tracking).
+
 ### Running services
 
 See `README.md` "Run locally" for standard commands. Key points:

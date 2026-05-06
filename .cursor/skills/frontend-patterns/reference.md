@@ -1,5 +1,11 @@
 # Mailcraft frontend — reference
 
+## App routes (high level)
+
+- **`/`** — Loads dashboard metrics via `/api/dashboard/*`.
+- **`/templates`** — Template CRUD against `/api/templates`.
+- **`/templates/:id`** — Editor; **Export HTML** calls `GET /api/templates/:id/html` and shows the result in a modal.
+
 ## Vite config highlights
 
 - **Port**: `server.port` is `5174`.

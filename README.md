@@ -1,6 +1,15 @@
 # Mailcraft
 
-Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite** and can render them as HTML for email.
+Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite** and can render them as HTML for email. The same backend records **email send/delivery/open events** in SQLite and exposes **dashboard JSON APIs** used by the home page.
+
+## UI overview
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Email metrics dashboard (volume, failures, opens, trends, top templates) |
+| `/templates` | Template list and create/open actions |
+| `/templates/:id` | Visual editor: drag blocks from the library, edit properties, **Export HTML** (saves the template then loads rendered HTML from the API in a modal) |
+| `/account` | Account placeholder |
 
 ## Repository layout
 
@@ -47,6 +56,8 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 
 ## API overview
 
+### Templates and health
+
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/health` | Health check |
@@ -56,6 +67,23 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+
+### Dashboard (JSON)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/dashboard/overview` | Aggregates for the selected period; query `days` (1–366). Includes recent failures. |
+| `GET` | `/api/dashboard/trends` | Per-day sent/failed/opens series; query `days` (1–90). |
+| `GET` | `/api/dashboard/top-templates` | Templates ranked by send volume; query `days` (1–366), `limit` (1–50). |
+
+### Events and tracking
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/events/message` | Ingest provider/webhook-style events (`accepted`, `sent`, `delivered`, `failed`, `opened`, `clicked`) for a message. |
+| `GET` | `/api/track/open/{message_id}` | Returns a 1×1 tracking GIF and records an `opened` event when embedded in HTML mail. |
+
+Event and message rows live in `email_messages` and `email_events` (see `backend/app/database.py`).
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 

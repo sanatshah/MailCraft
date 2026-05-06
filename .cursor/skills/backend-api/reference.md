@@ -9,7 +9,7 @@
 | `app/database.py` | SQLite path, schema DDL, connection helpers |
 | `app/models.py` | Pydantic / shared models |
 | `app/seed.py` | Initial data when DB is empty |
-| `app/routers/*.py` | HTTP routes |
+| `app/routers/*.py` | HTTP routes (`health`, `templates`, `metrics` — dashboard, events ingest, open tracking pixel) |
 | `tests/test_api.py` | API tests |
 
 ## Database path

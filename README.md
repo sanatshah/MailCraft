@@ -47,15 +47,39 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 
 ## API overview
 
+### Core
+
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/health` | Health check |
+
+### Templates
+
+| Method | Path | Description |
+|--------|------|-------------|
 | `GET` | `/api/templates` | List templates |
 | `POST` | `/api/templates` | Create template |
 | `GET` | `/api/templates/{id}` | Get template |
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+
+### Dashboard (email metrics)
+
+Used by the Home dashboard in the UI; all accept optional query params as in OpenAPI.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/dashboard/overview` | Summary KPIs, optional `days` (1–366) |
+| `GET` | `/api/dashboard/trends` | Per-day sent/failed/opens, optional `days` (1–90) |
+| `GET` | `/api/dashboard/top-templates` | Templates by send volume, optional `days`, `limit` (1–50) |
+
+### Events and tracking
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/events/message` | Ingest provider lifecycle events (sent, delivered, failed, opens, etc.) |
+| `GET` | `/api/track/open/{message_id}` | 1×1 tracking pixel; records an open for analytics |
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 

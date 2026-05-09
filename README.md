@@ -1,6 +1,6 @@
 # Mailcraft
 
-Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite** and can render them as HTML for email.
+Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite**, renders them as HTML for email, and exposes optional **dashboard** and **message event** APIs backed by the same database.
 
 ## Repository layout
 
@@ -47,6 +47,12 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 
 ## API overview
 
+Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
+
+### Templates
+
+Each template has a **name**, **subject**, **content** (JSON array of blocks), and optional **preview_text** (preheader text for inbox clients). Create and update bodies accept these fields per the OpenAPI schema.
+
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/health` | Health check |
@@ -55,9 +61,26 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 | `GET` | `/api/templates/{id}` | Get template |
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
-| `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+| `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout; returns `text/html`) |
 
-Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
+In the template editor, **Export HTML** saves the template, loads this HTML from the API, and opens it in an in-app preview modal.
+
+### Dashboard
+
+Used by the home dashboard UI. All routes accept a `days` query parameter (defaults and maxima are enforced per endpoint—see `/docs`).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/dashboard/overview` | Period summary (sends, failures, opens, rates) plus recent failures |
+| `GET` | `/api/dashboard/trends` | Daily series of sends, failures, and opens |
+| `GET` | `/api/dashboard/top-templates` | Templates ranked by send volume (`limit` query optional) |
+
+### Message events and tracking
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/events/message` | Ingest mail-provider lifecycle events (e.g. accepted, sent, delivered, failed, opened, clicked) and correlate them with templates/messages |
+| `GET` | `/api/track/open/{message_id}` | Tracking pixel that records an **opened** event and returns a 1×1 GIF |
 
 ## Tests
 

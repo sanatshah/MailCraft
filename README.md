@@ -1,6 +1,6 @@
 # Mailcraft
 
-Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite** and can render them as HTML for email.
+Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite** and can render them as HTML for email. The backend also exposes **message event ingestion**, a **1×1 open-tracking pixel** endpoint, and **dashboard** aggregates that power the in-app metrics views.
 
 ## Repository layout
 
@@ -56,6 +56,11 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+| `POST` | `/api/events/message` | Ingest a lifecycle event (`accepted`, `sent`, `delivered`, `failed`, `opened`, `clicked`); creates a message row when `message_id` is omitted |
+| `GET` | `/api/track/open/{message_id}` | Tracking pixel: records an `opened` event and returns a 1×1 transparent GIF |
+| `GET` | `/api/dashboard/overview` | Summary KPIs and recent failures (`days` query param, 1–366) |
+| `GET` | `/api/dashboard/trends` | Per-day sent / failed / opens (`days` query param, 1–90) |
+| `GET` | `/api/dashboard/top-templates` | Templates ranked by send volume (`days`, optional `limit` 1–50) |
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 

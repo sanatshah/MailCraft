@@ -69,12 +69,12 @@ These routes back the metrics dashboard and optional open tracking (1×1 trackin
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/dashboard/overview` | Aggregate KPIs and recent failures for a time window |
-| `GET` | `/api/dashboard/trends` | Daily trend series (opens, clicks, deliveries, failures) |
+| `GET` | `/api/dashboard/trends` | Daily trend series (sent, failed, opens per day) |
 | `GET` | `/api/dashboard/top-templates` | Templates ranked by send volume in the period, with per-template open counts |
-
-Dashboard routes accept optional query parameters: `days` (default `7`; `trends` allows 1–90, others 1–366) and `top-templates` accepts `limit` (default `5`, max `50`).
 | `POST` | `/api/events/message` | Ingest a provider-style event (`accepted`, `sent`, `delivered`, `failed`, `opened`, `clicked`) for a message; creates a message row when `message_id` is omitted |
 | `GET` | `/api/track/open/{message_id}` | Return a 1×1 GIF and record an `opened` event for that message |
+
+Dashboard routes accept optional query parameters: `days` (default `7`; `trends` allows 1–90, others 1–366) and `top-templates` accepts `limit` (default `5`, max `50`).
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 

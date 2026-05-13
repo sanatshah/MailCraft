@@ -1,6 +1,6 @@
 # Mailcraft
 
-Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite** and can render them as HTML for email.
+Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite** and can render them as HTML for email. The **home** page summarizes delivery metrics when message events exist; the **template editor** can open an **HTML preview** of the rendered template (same output as the `/html` API).
 
 ## Repository layout
 
@@ -50,12 +50,31 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/health` | Health check |
+
+### Templates
+
+| Method | Path | Description |
+|--------|------|-------------|
 | `GET` | `/api/templates` | List templates |
 | `POST` | `/api/templates` | Create template |
 | `GET` | `/api/templates/{id}` | Get template |
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+
+### Metrics and tracking
+
+These routes back the metrics dashboard and optional open tracking (1×1 tracking pixel URL pattern).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/dashboard/overview` | Aggregate KPIs and recent failures for a time window |
+| `GET` | `/api/dashboard/trends` | Daily trend series (opens, clicks, deliveries, failures) |
+| `GET` | `/api/dashboard/top-templates` | Templates ranked by send volume in the period, with per-template open counts |
+
+Dashboard routes accept optional query parameters: `days` (default `7`; `trends` allows 1–90, others 1–366) and `top-templates` accepts `limit` (default `5`, max `50`).
+| `POST` | `/api/events/message` | Ingest a provider-style event (`accepted`, `sent`, `delivered`, `failed`, `opened`, `clicked`) for a message; creates a message row when `message_id` is omitted |
+| `GET` | `/api/track/open/{message_id}` | Return a 1×1 GIF and record an `opened` event for that message |
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 

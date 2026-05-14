@@ -1,6 +1,6 @@
 # Mailcraft
 
-Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite** and can render them as HTML for email.
+Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite**, renders them as HTML for email, and exposes a **metrics dashboard** (also backed by SQLite) for simulated sends, provider-style events, and open tracking.
 
 ## Repository layout
 
@@ -51,11 +51,16 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 |--------|------|-------------|
 | `GET` | `/api/health` | Health check |
 | `GET` | `/api/templates` | List templates |
-| `POST` | `/api/templates` | Create template |
+| `POST` | `/api/templates` | Create template (JSON body includes `name`, `subject`, block `content`, optional `preview_text`) |
 | `GET` | `/api/templates/{id}` | Get template |
-| `PUT` | `/api/templates/{id}` | Update template |
+| `PUT` | `/api/templates/{id}` | Update template (partial updates supported) |
 | `DELETE` | `/api/templates/{id}` | Delete template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+| `GET` | `/api/dashboard/overview` | Dashboard summary for the last `days` (query param, default 7; allowed 1–366) including recent failures |
+| `GET` | `/api/dashboard/trends` | Per-day sent / failed / opens for the last `days` (default 7; allowed 1–90) |
+| `GET` | `/api/dashboard/top-templates` | Top templates by send volume for the last `days` with optional `limit` (default 5; allowed 1–50) |
+| `POST` | `/api/events/message` | Ingest a lifecycle event (`accepted`, `sent`, `delivered`, `failed`, `opened`, `clicked`); creates or updates `email_messages` / `email_events` |
+| `GET` | `/api/track/open/{message_id}` | Returns a 1×1 tracking GIF and records an `opened` event when the message exists |
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 
@@ -71,6 +76,7 @@ pytest
 **Frontend** (from `frontend`):
 
 ```bash
+npx eslint .
 npm run test
 ```
 

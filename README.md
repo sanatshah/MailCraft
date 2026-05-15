@@ -1,6 +1,6 @@
 # Mailcraft
 
-Mailcraft is a local email template editor: a **React + Vite** frontend for building templates from blocks (text, images, buttons, dividers, spacers, columns), backed by a **FastAPI** API that stores templates in **SQLite** and can render them as HTML for email.
+Mailcraft is a local email template and analytics app: a **React + Vite** frontend whose home page shows an **email metrics dashboard** (sends, failures, opens, trends), plus routes to **build templates** from blocks (text, images, buttons, dividers, spacers, columns). A **FastAPI** API stores templates and message/event data in **SQLite**, renders templates as HTML for email, and exposes endpoints to **ingest provider events** and **serve an open-tracking pixel**.
 
 ## Repository layout
 
@@ -41,7 +41,7 @@ npm run dev
 ### Check it works
 
 - Health: `curl -s http://127.0.0.1:8002/api/health` → `{"status":"ok"}`
-- App: open [http://localhost:5174](http://localhost:5174)
+- App: open [http://localhost:5174](http://localhost:5174) (home dashboard; use the sidebar for **Templates** and the template editor)
 
 If the UI cannot reach the API, confirm the backend is on **8002** (see `frontend/vite.config.ts` proxy target). If you change the backend port, update that proxy to match.
 
@@ -56,6 +56,11 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+| `POST` | `/api/events/message` | Ingest a lifecycle event (`accepted`, `sent`, `delivered`, `failed`, `opened`, `clicked`); creates or updates `email_messages` / `email_events` |
+| `GET` | `/api/track/open/{message_id}` | Returns a 1×1 transparent GIF and records an `opened` event when embedded in HTML mail |
+| `GET` | `/api/dashboard/overview` | Query `days` (1–366): KPIs, rates, and recent failures |
+| `GET` | `/api/dashboard/trends` | Query `days` (1–90): per-day sent / failed / open counts |
+| `GET` | `/api/dashboard/top-templates` | Query `days` (1–366) and `limit` (1–50): templates ranked by send volume |
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 

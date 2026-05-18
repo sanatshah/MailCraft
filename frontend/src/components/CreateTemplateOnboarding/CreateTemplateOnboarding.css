@@ -1,0 +1,117 @@
+.create-template-onboarding {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-md) 0 var(--space-2xl);
+}
+
+.create-template-onboarding-card {
+  max-width: 440px;
+  width: 100%;
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.create-template-onboarding-kicker {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  margin: 0 0 var(--space-sm);
+}
+
+.create-template-onboarding-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-sm);
+  letter-spacing: -0.02em;
+}
+
+.create-template-onboarding-lead {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-lg);
+  line-height: 1.5;
+}
+
+.create-template-onboarding-steps {
+  margin: 0 0 var(--space-xl);
+  padding-left: var(--space-lg);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
+}
+
+.create-template-onboarding-steps li {
+  margin-bottom: var(--space-sm);
+}
+
+.create-template-onboarding-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.create-template-onboarding-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-xs);
+}
+
+.create-template-onboarding-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.create-template-onboarding-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(239, 99, 81, 0.1);
+}
+
+.create-template-onboarding-input:disabled {
+  opacity: 0.6;
+}
+
+.create-template-onboarding-error {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin: var(--space-sm) 0 0;
+}
+
+.create-template-onboarding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.create-template-onboarding-skip,
+.create-template-onboarding-secondary {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.create-template-onboarding-skip:hover,
+.create-template-onboarding-secondary:hover {
+  color: var(--color-text);
+}

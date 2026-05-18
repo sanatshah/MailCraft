@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { CreateTemplateOnboarding } from '../../components/CreateTemplateOnboarding/CreateTemplateOnboarding'
 import { useTemplates } from '../../hooks/useTemplates'
+import {
+  setTemplateOnboardingCompleted,
+  setTemplateOnboardingSkipped,
+  shouldShowCreateTemplateOnboarding,
+} from '../../lib/templateOnboardingStorage'
 import type { Template } from '../../types'
 import './TemplateList.css'
 
@@ -102,6 +108,7 @@ export function TemplateList() {
   const { templates, loading, error, createTemplate, deleteTemplate } = useTemplates()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [onboardingSkippedUI, setOnboardingSkippedUI] = useState(false)
 
   const filtered = templates.filter(
     (t) =>
@@ -109,9 +116,22 @@ export function TemplateList() {
       t.subject.toLowerCase().includes(search.toLowerCase()),
   )
 
-  const handleCreate = async () => {
-    const template = await createTemplate({ name: 'Untitled Template' })
+  const showCreateOnboarding =
+    templates.length === 0 &&
+    shouldShowCreateTemplateOnboarding() &&
+    !onboardingSkippedUI
+
+  const handleCreate = async (name: string = 'Untitled Template') => {
+    const trimmed = name.trim()
+    const finalName = trimmed || 'Untitled Template'
+    const template = await createTemplate({ name: finalName })
+    setTemplateOnboardingCompleted()
     navigate(`/templates/${template.id}`, { state: { k: 1 } })
+  }
+
+  const handleSkipOnboarding = () => {
+    setTemplateOnboardingSkipped()
+    setOnboardingSkippedUI(true)
   }
 
   const handleDelete = async (id: string) => {
@@ -146,7 +166,7 @@ export function TemplateList() {
             Create and manage your email templates
           </p>
         </div>
-        <button className="btn-primary" onClick={handleCreate}>
+        <button type="button" className="btn-primary" onClick={() => void handleCreate()}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
@@ -172,19 +192,49 @@ export function TemplateList() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="template-list-empty">
-          <div className="empty-icon">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-              <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" />
-              <path d="M16 20H32M16 26H28M16 32H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+        templates.length === 0 && showCreateOnboarding ? (
+          <>
+            <div className="template-list-empty template-list-empty-onboarding-intro">
+              <div className="empty-icon">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" />
+                  <path
+                    d="M16 20H32M16 26H28M16 32H24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              <h3>Welcome to MailCraft templates</h3>
+              <p>A quick two-step guide, then we will open the editor for you.</p>
+            </div>
+            <CreateTemplateOnboarding
+              onCreate={(name) => handleCreate(name)}
+              onSkip={handleSkipOnboarding}
+            />
+          </>
+        ) : (
+          <div className="template-list-empty">
+            <div className="empty-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" />
+                <path d="M16 20H32M16 26H28M16 32H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <h3>{templates.length === 0 ? 'No templates yet' : 'No matches'}</h3>
+            <p>
+              {templates.length === 0
+                ? 'Get started by creating your first email template'
+                : 'Try another search term'}
+            </p>
+            {templates.length === 0 && (
+              <button className="btn-primary" onClick={() => void handleCreate()}>
+                Create Template
+              </button>
+            )}
           </div>
-          <h3>No templates yet</h3>
-          <p>Get started by creating your first email template</p>
-          <button className="btn-primary" onClick={handleCreate}>
-            Create Template
-          </button>
-        </div>
+        )
       ) : (
         <div className="template-grid">
           {filtered.map((template) => (

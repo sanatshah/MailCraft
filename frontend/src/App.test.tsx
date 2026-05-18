@@ -120,6 +120,7 @@ describe('App', () => {
   beforeEach(() => {
     setupFetch()
     window.history.replaceState({}, '', '/')
+    localStorage.clear()
   })
 
   it('renders the sidebar with MailCraft branding', () => {
@@ -134,6 +135,23 @@ describe('App', () => {
     expect(sidebar).toHaveTextContent('Templates')
     expect(sidebar).toHaveTextContent('Home')
     expect(sidebar).toHaveTextContent('Account')
+  })
+
+  it('toggles sidebar collapse via the sidebar toggle', async () => {
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+    const sidebar = screen.getByTestId('sidebar')
+    expect(sidebar).toHaveAttribute('data-collapsed', 'false')
+
+    fireEvent.click(screen.getByTestId('sidebar-toggle'))
+    expect(sidebar).toHaveAttribute('data-collapsed', 'true')
+    expect(sidebar.classList.contains('sidebar--collapsed')).toBe(true)
+
+    fireEvent.click(screen.getByTestId('sidebar-toggle'))
+    expect(sidebar).toHaveAttribute('data-collapsed', 'false')
+    expect(sidebar.classList.contains('sidebar--collapsed')).toBe(false)
   })
 
   it('renders the dashboard on / with empty-state guidance', async () => {

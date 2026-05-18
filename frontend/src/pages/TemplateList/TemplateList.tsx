@@ -1,8 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTemplates } from '../../hooks/useTemplates'
 import type { Template } from '../../types'
 import './TemplateList.css'
+
+function isMultilineTypingContext(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  if (target.isContentEditable) return true
+  return target instanceof HTMLTextAreaElement
+}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -101,7 +107,27 @@ function TemplateCard({
 export function TemplateList() {
   const { templates, loading, error, createTemplate, deleteTemplate } = useTemplates()
   const navigate = useNavigate()
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    if (loading || error) return
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return
+      if (e.key !== 's' && e.key !== 'S') return
+      if (isMultilineTypingContext(e.target)) return
+
+      const input = searchInputRef.current
+      if (!input) return
+
+      e.preventDefault()
+      input.focus()
+    }
+
+    window.addEventListener('keydown', onKeyDown, true)
+    return () => window.removeEventListener('keydown', onKeyDown, true)
+  }, [loading, error])
 
   const filtered = templates.filter(
     (t) =>
@@ -146,11 +172,15 @@ export function TemplateList() {
             Create and manage your email templates
           </p>
         </div>
-        <button className="btn-primary" onClick={handleCreate}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <button
+          type="button"
+          className="btn-primary template-list-create-btn"
+          onClick={handleCreate}
+          aria-label="Create template"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
             <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          Create Template
         </button>
       </div>
 
@@ -161,9 +191,12 @@ export function TemplateList() {
             <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
           <input
+            ref={searchInputRef}
             type="text"
             className="search-input"
             placeholder="Search templates…"
+            aria-label="Search templates"
+            data-testid="template-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -181,8 +214,15 @@ export function TemplateList() {
           </div>
           <h3>No templates yet</h3>
           <p>Get started by creating your first email template</p>
-          <button className="btn-primary" onClick={handleCreate}>
-            Create Template
+          <button
+            type="button"
+            className="btn-primary template-list-create-btn"
+            onClick={handleCreate}
+            aria-label="Create template"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
           </button>
         </div>
       ) : (

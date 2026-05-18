@@ -44,6 +44,14 @@
   background-color: var(--color-primary-hover);
 }
 
+.btn-primary.template-list-create-btn {
+  gap: 0;
+  justify-content: center;
+  padding: 10px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
 /* Toolbar */
 .template-list-toolbar {
   display: flex;

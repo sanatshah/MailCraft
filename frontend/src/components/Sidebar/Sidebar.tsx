@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import './Sidebar.css'
 
@@ -58,6 +58,20 @@ function readStoredCollapsed(): boolean {
 export function Sidebar() {
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(readStoredCollapsed)
+  const [isDesktopSidebarLayout, setIsDesktopSidebarLayout] = useState(false)
+
+  useLayoutEffect(() => {
+    if (typeof globalThis.matchMedia !== 'function') {
+      return
+    }
+    const mq = globalThis.matchMedia('(min-width: 769px)')
+    const sync = () => setIsDesktopSidebarLayout(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  const hideCollapsedNavLabelsFromAT = collapsed && isDesktopSidebarLayout
 
   useEffect(() => {
     try {
@@ -128,7 +142,7 @@ export function Sidebar() {
               title={collapsed ? item.label : undefined}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
-              <span className="sidebar-nav-label" aria-hidden={collapsed}>
+              <span className="sidebar-nav-label" aria-hidden={hideCollapsedNavLabelsFromAT}>
                 {item.label}
               </span>
             </div>
@@ -145,7 +159,7 @@ export function Sidebar() {
               }
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
-              <span className="sidebar-nav-label" aria-hidden={collapsed}>
+              <span className="sidebar-nav-label" aria-hidden={hideCollapsedNavLabelsFromAT}>
                 {item.label}
               </span>
             </NavLink>
@@ -167,7 +181,7 @@ export function Sidebar() {
               <path d="M5 16.5C5.5 14 7.5 12.5 10 12.5C12.5 12.5 14.5 14 15 16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </span>
-          <span className="sidebar-nav-label" aria-hidden={collapsed}>
+          <span className="sidebar-nav-label" aria-hidden={hideCollapsedNavLabelsFromAT}>
             Account
           </span>
         </NavLink>

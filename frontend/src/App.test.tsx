@@ -84,11 +84,13 @@ function setupFetch(options: {
   trends?: typeof sampleTrends
   top?: typeof sampleTop
   templatesList?: unknown[]
+  contentList?: unknown[]
 } = {}) {
   const overview = options.overview ?? emptyOverview
   const trends = options.trends ?? { period_days: 7, series: [] }
   const top = options.top ?? { period_days: 7, templates: [] }
   const templatesList = options.templatesList ?? []
+  const contentList = options.contentList ?? []
 
   vi.stubGlobal(
     'fetch',
@@ -105,6 +107,9 @@ function setupFetch(options: {
       }
       if (path === '/api/templates') {
         return Promise.resolve(new Response(JSON.stringify(templatesList)))
+      }
+      if (path === '/api/content') {
+        return Promise.resolve(new Response(JSON.stringify(contentList)))
       }
       return Promise.resolve(new Response('not found', { status: 404 }))
     }),
@@ -132,6 +137,7 @@ describe('App', () => {
     const sidebar = screen.getByTestId('sidebar')
     expect(sidebar).toBeInTheDocument()
     expect(sidebar).toHaveTextContent('Templates')
+    expect(sidebar).toHaveTextContent('Content')
     expect(sidebar).toHaveTextContent('Home')
     expect(sidebar).toHaveTextContent('Account')
   })
@@ -173,6 +179,20 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('home-error')).toBeInTheDocument()
     })
+  })
+
+  it('navigates to content page from sidebar', async () => {
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+    const contentLink = screen.getByRole('link', { name: 'Content' })
+    expect(contentLink).toHaveAttribute('href', '/content')
+    fireEvent.click(contentLink)
+    await waitFor(() => {
+      expect(screen.getByTestId('content-page')).toBeInTheDocument()
+    })
+    expect(screen.getByText('Manage reusable strings by key and locale')).toBeInTheDocument()
   })
 
   it('navigates to templates list from sidebar', async () => {

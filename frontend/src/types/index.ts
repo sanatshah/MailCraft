@@ -134,6 +134,27 @@ export interface DashboardTopTemplates {
   templates: TopTemplateRow[]
 }
 
+/** CMS content entries (matches `/api/content`) */
+export interface ContentEntry {
+  id: string
+  key: string
+  description: string
+  translations: Record<string, string>
+  created_at: string
+  updated_at: string
+}
+
+export interface ContentEntryCreate {
+  key: string
+  description?: string
+  translations?: Record<string, string>
+}
+
+export interface ContentEntryPatch {
+  key?: string
+  description?: string
+}
+
 export const DEFAULT_BLOCK_PROPERTIES: Record<BlockType, Record<string, unknown>> = {
   text: {
     content: 'Enter your text here...',

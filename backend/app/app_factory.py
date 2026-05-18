@@ -8,13 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
 from app.routers import register_routers
-from app.seed import seed_if_empty
+from app.seed import seed_content_if_empty, seed_if_empty
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     init_db()
     seed_if_empty()
+    seed_content_if_empty()
     yield
 
 

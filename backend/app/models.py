@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class TemplateCreate(BaseModel):
@@ -94,3 +95,52 @@ class RecentFailureRow(BaseModel):
 class DashboardOverviewExtended(BaseModel):
     overview: DashboardOverview
     recent_failures: list[RecentFailureRow]
+
+
+# --- CMS content entries ---
+
+
+_CONTENT_KEY_PATTERN = r"^[a-zA-Z0-9._-]+$"
+_LOCALE_PATTERN = r"^[a-zA-Z0-9-]+$"
+
+
+class ContentEntryCreate(BaseModel):
+    key: str = Field(pattern=_CONTENT_KEY_PATTERN)
+    description: str = ""
+    translations: dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("translations")
+    @classmethod
+    def validate_translation_locales(cls, v: dict[str, str]) -> dict[str, str]:
+        rx = re.compile(_LOCALE_PATTERN)
+        for loc in v:
+            if not rx.fullmatch(loc):
+                raise ValueError(f"Invalid locale: {loc}")
+        return v
+
+
+class ContentEntryUpdate(BaseModel):
+    key: str | None = None
+    description: str | None = None
+
+    @field_validator("key")
+    @classmethod
+    def validate_key_optional(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        if not re.fullmatch(_CONTENT_KEY_PATTERN, v):
+            raise ValueError("Invalid content key")
+        return v
+
+
+class TranslationUpsert(BaseModel):
+    value: str
+
+
+class ContentEntryResponse(BaseModel):
+    id: str
+    key: str
+    description: str
+    translations: dict[str, str]
+    created_at: str
+    updated_at: str

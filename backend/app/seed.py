@@ -252,3 +252,62 @@ def seed_if_empty() -> None:
         conn.commit()
     finally:
         conn.close()
+
+
+SEED_CONTENT = [
+    {
+        "key": "welcome.headline",
+        "description": "Hero headline on the welcome email",
+        "translations": {
+            "en": "Welcome to MailCraft",
+            "es": "Bienvenido a MailCraft",
+        },
+    },
+    {
+        "key": "footer.unsubscribe",
+        "description": "Legal unsubscribe line",
+        "translations": {
+            "en": "Unsubscribe",
+            "fr": "Se désabonner",
+        },
+    },
+    {
+        "key": "cta.shop_now",
+        "description": "Primary commerce call to action",
+        "translations": {
+            "en": "Shop now",
+        },
+    },
+]
+
+
+def seed_content_if_empty() -> None:
+    conn = get_connection()
+    try:
+        count = conn.execute("SELECT COUNT(*) FROM content_entries").fetchone()[0]
+        if count > 0:
+            return
+
+        now = _now()
+        for row in SEED_CONTENT:
+            entry_id = str(uuid.uuid4())
+            conn.execute(
+                """INSERT INTO content_entries (id, key, description, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (
+                    entry_id,
+                    row["key"],
+                    row["description"],
+                    now,
+                    now,
+                ),
+            )
+            for locale, value in row["translations"].items():
+                conn.execute(
+                    """INSERT INTO content_translations (id, entry_id, locale, value, updated_at)
+                       VALUES (?, ?, ?, ?, ?)""",
+                    (str(uuid.uuid4()), entry_id, locale, value, now),
+                )
+        conn.commit()
+    finally:
+        conn.close()

@@ -23,7 +23,7 @@ const NAV_ITEMS = [
   },
   {
     label: 'Content',
-    path: null as string | null,
+    path: '/content',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <rect x="3" y="4" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
@@ -39,6 +39,9 @@ function isNavActive(pathname: string, label: string): boolean {
   }
   if (label === 'Templates') {
     return pathname === '/templates' || pathname.startsWith('/templates/')
+  }
+  if (label === 'Content') {
+    return pathname === '/content' || pathname.startsWith('/content/')
   }
   return false
 }
@@ -59,31 +62,20 @@ export function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        {NAV_ITEMS.map((item) =>
-          item.path == null ? (
-            <div
-              key={item.label}
-              className="sidebar-nav-item sidebar-nav-item--placeholder"
-              aria-disabled="true"
-            >
-              <span className="sidebar-nav-icon">{item.icon}</span>
-              <span className="sidebar-nav-label">{item.label}</span>
-            </div>
-          ) : (
-            <NavLink
-              key={item.label}
-              to={item.path}
-              className={() =>
-                `sidebar-nav-item ${
-                  isNavActive(location.pathname, item.label) ? 'active' : ''
-                }`
-              }
-            >
-              <span className="sidebar-nav-icon">{item.icon}</span>
-              <span className="sidebar-nav-label">{item.label}</span>
-            </NavLink>
-          ),
-        )}
+        {NAV_ITEMS.map((item) => (
+          <NavLink
+            key={item.label}
+            to={item.path}
+            className={() =>
+              `sidebar-nav-item ${
+                isNavActive(location.pathname, item.label) ? 'active' : ''
+              }`
+            }
+          >
+            <span className="sidebar-nav-icon">{item.icon}</span>
+            <span className="sidebar-nav-label">{item.label}</span>
+          </NavLink>
+        ))}
       </nav>
 
       <div className="sidebar-footer">

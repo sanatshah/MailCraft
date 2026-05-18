@@ -64,6 +64,33 @@ _CREATE_EMAIL_MESSAGES_CREATED_INDEX = """
 CREATE INDEX IF NOT EXISTS idx_email_messages_created_at ON email_messages(created_at);
 """
 
+_CREATE_CONTENT_ENTRIES = """
+CREATE TABLE IF NOT EXISTS content_entries (
+    id TEXT PRIMARY KEY,
+    key TEXT NOT NULL UNIQUE,
+    description TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+"""
+
+_CREATE_CONTENT_TRANSLATIONS = """
+CREATE TABLE IF NOT EXISTS content_translations (
+    id TEXT PRIMARY KEY,
+    entry_id TEXT NOT NULL,
+    locale TEXT NOT NULL,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (entry_id) REFERENCES content_entries(id) ON DELETE CASCADE,
+    UNIQUE (entry_id, locale)
+);
+"""
+
+_CREATE_CONTENT_TRANSLATIONS_ENTRY_INDEX = """
+CREATE INDEX IF NOT EXISTS idx_content_translations_entry_id
+ON content_translations(entry_id);
+"""
+
 
 def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(str(DB_PATH))
@@ -83,6 +110,9 @@ def init_db() -> None:
         conn.execute(_CREATE_EMAIL_EVENTS_OCCURRED_INDEX)
         conn.execute(_CREATE_EMAIL_MESSAGES_TEMPLATE_INDEX)
         conn.execute(_CREATE_EMAIL_MESSAGES_CREATED_INDEX)
+        conn.execute(_CREATE_CONTENT_ENTRIES)
+        conn.execute(_CREATE_CONTENT_TRANSLATIONS)
+        conn.execute(_CREATE_CONTENT_TRANSLATIONS_ENTRY_INDEX)
         conn.commit()
     finally:
         conn.close()

@@ -7,6 +7,9 @@
   flex-direction: column;
   overflow-y: auto;
   z-index: 100;
+  transition:
+    width var(--transition-normal),
+    min-width var(--transition-normal);
 }
 
 .sidebar-header {
@@ -14,10 +17,53 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.sidebar-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.sidebar-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--color-sidebar-text);
+  flex-shrink: 0;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.sidebar-toggle:hover {
+  background-color: var(--color-sidebar-hover);
+  color: var(--color-sidebar-text-active);
+}
+
+.sidebar-toggle:focus {
+  outline: none;
+}
+
+.sidebar-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .sidebar-logo {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  min-width: 0;
 }
 
 .sidebar-brand {
@@ -88,6 +134,43 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+@media (min-width: 769px) {
+  .sidebar--collapsed {
+    width: var(--sidebar-collapsed-width);
+    min-width: var(--sidebar-collapsed-width);
+  }
+
+  .sidebar--collapsed .sidebar-header-inner {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .sidebar--collapsed .sidebar-logo {
+    justify-content: center;
+  }
+
+  .sidebar--collapsed .sidebar-brand {
+    display: none;
+  }
+
+  .sidebar--collapsed .sidebar-nav-item {
+    justify-content: center;
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
+    margin-left: var(--space-xs);
+    margin-right: var(--space-xs);
+  }
+
+  .sidebar--collapsed .sidebar-nav-label {
+    display: none;
+  }
+
+  .sidebar--collapsed .sidebar-footer .sidebar-nav-item {
+    justify-content: center;
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;
@@ -132,8 +215,12 @@
   .sidebar-nav-label {
     font-size: 0.65rem;
   }
-  
+
   .sidebar-footer {
+    display: none;
+  }
+
+  .sidebar-toggle {
     display: none;
   }
 }

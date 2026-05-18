@@ -1,6 +1,7 @@
 import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import { SIDEBAR_COLLAPSED_STORAGE_KEY } from './components/Sidebar/Sidebar'
 
 function pathnameFrom(input: RequestInfo | URL): string {
   const href =
@@ -120,6 +121,7 @@ describe('App', () => {
   beforeEach(() => {
     setupFetch()
     window.history.replaceState({}, '', '/')
+    localStorage.removeItem(SIDEBAR_COLLAPSED_STORAGE_KEY)
   })
 
   it('renders the sidebar with MailCraft branding', () => {
@@ -201,4 +203,21 @@ describe('App', () => {
       expect(screen.getByTestId('account-page')).toBeInTheDocument()
     })
   })
+
+  it('persists sidebar collapsed state to localStorage', () => {
+    render(<App />)
+    const toggle = screen.getByRole('button', { name: 'Collapse sidebar' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.click(toggle)
+    expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe('true')
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('restores collapsed sidebar from localStorage', () => {
+    localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, 'true')
+    render(<App />)
+    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar')).toHaveClass('sidebar--collapsed')
+  })
+
 })

@@ -56,6 +56,13 @@ If the UI cannot reach the API, confirm the backend is on **8002** (see `fronten
 | `PUT` | `/api/templates/{id}` | Update template |
 | `DELETE` | `/api/templates/{id}` | Delete template |
 | `GET` | `/api/templates/{id}/html` | Render template as HTML (email-oriented layout) |
+| `GET` | `/api/content` | List content entries with locale maps |
+| `POST` | `/api/content` | Create content entry (optional translations); duplicate key → 409 |
+| `GET` | `/api/content/{id}` | Get one entry |
+| `PATCH` | `/api/content/{id}` | Update key/description |
+| `PUT` | `/api/content/{id}/locales/{locale}` | Upsert translation for a locale |
+| `DELETE` | `/api/content/{id}/locales/{locale}` | Remove one locale |
+| `DELETE` | `/api/content/{id}` | Delete entry (cascades translations) |
 
 Interactive docs are available at [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs) while the backend is running.
 

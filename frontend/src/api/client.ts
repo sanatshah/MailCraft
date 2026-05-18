@@ -1,4 +1,7 @@
 import type {
+  ContentEntry,
+  ContentEntryCreate,
+  ContentEntryPatch,
   DashboardOverviewExtended,
   DashboardTopTemplates,
   DashboardTrends,
@@ -8,6 +11,7 @@ import type {
 } from '../types'
 
 const BASE = '/api/templates'
+const CONTENT_BASE = '/api/content'
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -69,5 +73,48 @@ export const api = {
     return request<DashboardTopTemplates>(
       `/api/dashboard/top-templates?days=${days}&limit=${limit}`,
     )
+  },
+
+  listContentEntries(): Promise<ContentEntry[]> {
+    return request<ContentEntry[]>(CONTENT_BASE)
+  },
+
+  getContentEntry(id: string): Promise<ContentEntry> {
+    return request<ContentEntry>(`${CONTENT_BASE}/${id}`)
+  },
+
+  createContentEntry(data: ContentEntryCreate): Promise<ContentEntry> {
+    return request<ContentEntry>(CONTENT_BASE, {
+      method: 'POST',
+      body: JSON.stringify({
+        key: data.key,
+        description: data.description ?? '',
+        translations: data.translations ?? {},
+      }),
+    })
+  },
+
+  patchContentEntry(id: string, data: ContentEntryPatch): Promise<ContentEntry> {
+    return request<ContentEntry>(`${CONTENT_BASE}/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    })
+  },
+
+  upsertContentTranslation(id: string, locale: string, value: string): Promise<ContentEntry> {
+    const enc = encodeURIComponent(locale)
+    return request<ContentEntry>(`${CONTENT_BASE}/${id}/locales/${enc}`, {
+      method: 'PUT',
+      body: JSON.stringify({ value }),
+    })
+  },
+
+  deleteContentTranslation(id: string, locale: string): Promise<void> {
+    const enc = encodeURIComponent(locale)
+    return request<void>(`${CONTENT_BASE}/${id}/locales/${enc}`, { method: 'DELETE' })
+  },
+
+  deleteContentEntry(id: string): Promise<void> {
+    return request<void>(`${CONTENT_BASE}/${id}`, { method: 'DELETE' })
   },
 }

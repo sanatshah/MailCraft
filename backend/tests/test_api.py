@@ -26,6 +26,8 @@ def _clean_db():
     conn = db_mod.get_connection()
     conn.execute("DELETE FROM email_events")
     conn.execute("DELETE FROM email_messages")
+    conn.execute("DELETE FROM content_translations")
+    conn.execute("DELETE FROM content_entries")
     conn.execute("DELETE FROM templates")
     conn.commit()
     conn.close()
@@ -342,3 +344,100 @@ def test_dashboard_top_templates():
     assert len(data["templates"]) >= 1
     assert data["templates"][0]["template_id"] == tid
     assert data["templates"][0]["send_count"] >= 1
+
+
+# --- Content API ---
+
+
+def test_content_create_list_get():
+    create = client.post(
+        "/api/content",
+        json={
+            "key": "hero.title",
+            "description": "Hero",
+            "translations": {"en": "Hello"},
+        },
+    )
+    assert create.status_code == 201
+    body = create.json()
+    eid = body["id"]
+    assert body["translations"]["en"] == "Hello"
+
+    lst = client.get("/api/content")
+    assert lst.status_code == 200
+    keys = [row["key"] for row in lst.json()]
+    assert "hero.title" in keys
+
+    got = client.get(f"/api/content/{eid}")
+    assert got.status_code == 200
+    assert got.json()["key"] == "hero.title"
+
+
+def test_content_duplicate_key_returns_409():
+    assert client.post("/api/content", json={"key": "dup.key"}).status_code == 201
+    dup = client.post("/api/content", json={"key": "dup.key"})
+    assert dup.status_code == 409
+
+
+def test_content_patch_updates_description():
+    eid = client.post("/api/content", json={"key": "patch.me"}).json()["id"]
+    r = client.patch(f"/api/content/{eid}", json={"description": "New desc"})
+    assert r.status_code == 200
+    assert r.json()["description"] == "New desc"
+
+
+def test_content_patch_duplicate_key_returns_409():
+    client.post("/api/content", json={"key": "alpha.one"})
+    b = client.post("/api/content", json={"key": "beta.two"}).json()["id"]
+    clash = client.patch(f"/api/content/{b}", json={"key": "alpha.one"})
+    assert clash.status_code == 409
+
+
+def test_content_put_translation_upserts():
+    eid = client.post("/api/content", json={"key": "trans.key"}).json()["id"]
+    r = client.put(f"/api/content/{eid}/locales/en", json={"value": "Hi"})
+    assert r.status_code == 200
+    assert r.json()["translations"]["en"] == "Hi"
+    r2 = client.put(f"/api/content/{eid}/locales/en", json={"value": "Bye"})
+    assert r2.status_code == 200
+    assert r2.json()["translations"]["en"] == "Bye"
+
+
+def test_content_delete_locale():
+    eid = client.post(
+        "/api/content",
+        json={"key": "locale.del", "translations": {"en": "x"}},
+    ).json()["id"]
+    assert client.delete(f"/api/content/{eid}/locales/en").status_code == 204
+    refreshed = client.get(f"/api/content/{eid}")
+    assert "en" not in refreshed.json()["translations"]
+
+
+def test_content_delete_entry_returns_204():
+    eid = client.post("/api/content", json={"key": "gone.key"}).json()["id"]
+    assert client.delete(f"/api/content/{eid}").status_code == 204
+    assert client.get(f"/api/content/{eid}").status_code == 404
+
+
+def test_content_get_returns_404_when_missing():
+    assert client.get("/api/content/nonexistent-entry-id").status_code == 404
+
+
+def test_content_delete_translation_returns_404_when_locale_missing():
+    eid = client.post(
+        "/api/content",
+        json={"key": "only.en", "translations": {"en": "a"}},
+    ).json()["id"]
+    assert client.delete(f"/api/content/{eid}/locales/fr").status_code == 404
+
+
+def test_content_delete_translation_returns_404_when_entry_missing():
+    assert (
+        client.delete("/api/content/nonexistent-entry-id/locales/en").status_code == 404
+    )
+
+
+def test_content_invalid_locale_path_returns_422():
+    eid = client.post("/api/content", json={"key": "loc.val"}).json()["id"]
+    bad = client.put(f"/api/content/{eid}/locales/en_US", json={"value": "x"})
+    assert bad.status_code == 422

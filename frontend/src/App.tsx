@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Sidebar } from './components/Sidebar/Sidebar'
 import { Account } from './pages/Account/Account'
+import { Content } from './pages/Content/Content'
 import { Home } from './pages/Home/Home'
 import { TemplateList } from './pages/TemplateList/TemplateList'
 import { TemplateEditor } from './pages/TemplateEditor/TemplateEditor'
@@ -44,6 +45,14 @@ function App() {
           element={
             <MainLayout>
               <TemplateList />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/content"
+          element={
+            <MainLayout>
+              <Content />
             </MainLayout>
           }
         />

@@ -138,6 +138,16 @@ describe('App', () => {
     expect(sidebar).toHaveTextContent('Account')
   })
 
+  it('opens the search palette from the sidebar trigger', async () => {
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByTestId('sidebar-search-trigger'))
+    expect(screen.getByRole('dialog', { name: 'Search MailCraft' })).toBeInTheDocument()
+    expect(screen.getByTestId('search-palette-input')).toBeInTheDocument()
+  })
+
   it('renders the dashboard on / with empty-state guidance', async () => {
     render(<App />)
     await waitFor(() => {
@@ -219,5 +229,4 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument()
     expect(screen.getByTestId('sidebar')).toHaveClass('sidebar--collapsed')
   })
-
 })

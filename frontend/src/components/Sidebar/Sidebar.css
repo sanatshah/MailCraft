@@ -31,6 +31,7 @@
   flex-shrink: 0;
 }
 
+.sidebar-search-trigger,
 .sidebar-toggle {
   display: flex;
   align-items: center;
@@ -45,15 +46,18 @@
     color var(--transition-fast);
 }
 
+.sidebar-search-trigger:hover,
 .sidebar-toggle:hover {
   background-color: var(--color-sidebar-hover);
   color: var(--color-sidebar-text-active);
 }
 
+.sidebar-search-trigger:focus,
 .sidebar-toggle:focus {
   outline: none;
 }
 
+.sidebar-search-trigger:focus-visible,
 .sidebar-toggle:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
@@ -215,7 +219,7 @@
   .sidebar-nav-label {
     font-size: 0.65rem;
   }
-
+  
   .sidebar-footer {
     display: none;
   }

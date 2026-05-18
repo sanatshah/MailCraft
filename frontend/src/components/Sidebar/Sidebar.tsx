@@ -1,5 +1,9 @@
+import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import './Sidebar.css'
+
+/** Persisted across navigation; desktop layout only (mobile uses bottom nav). */
+export const SIDEBAR_COLLAPSED_STORAGE_KEY = 'mailcraft.sidebar.collapsed'
 
 const NAV_ITEMS = [
   {
@@ -43,36 +47,97 @@ function isNavActive(pathname: string, label: string): boolean {
   return false
 }
 
+function readStoredCollapsed(): boolean {
+  try {
+    return globalThis.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
 export function Sidebar() {
   const location = useLocation()
+  const [collapsed, setCollapsed] = useState(readStoredCollapsed)
+
+  useEffect(() => {
+    try {
+      globalThis.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(collapsed))
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }, [collapsed])
 
   return (
-    <aside className="sidebar" data-testid="sidebar">
+    <aside
+      className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}
+      data-testid="sidebar"
+      aria-label="Application navigation"
+    >
       <div className="sidebar-header">
-        <div className="sidebar-logo">
-          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-            <rect width="32" height="32" rx="8" fill="#EF6351" />
-            <path d="M8 10h16v2H8zM8 15h12v2H8zM8 20h14v2H8z" fill="#fff" />
-          </svg>
-          <span className="sidebar-brand">MailCraft</span>
+        <div className="sidebar-header-inner">
+          <div className="sidebar-logo">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect width="32" height="32" rx="8" fill="#EF6351" />
+              <path d="M8 10h16v2H8zM8 15h12v2H8zM8 20h14v2H8z" fill="#fff" />
+            </svg>
+            <span className="sidebar-brand">MailCraft</span>
+          </div>
+          <div className="sidebar-header-actions">
+            <button
+              type="button"
+              className="sidebar-toggle"
+              aria-expanded={!collapsed}
+              aria-controls="sidebar-primary-nav"
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              onClick={() => setCollapsed((c) => !c)}
+            >
+              {collapsed ? (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <path
+                    d="M6 4L11 9L6 14"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <path
+                    d="M12 4L7 9L12 14"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav id="sidebar-primary-nav" className="sidebar-nav" aria-label="Primary">
         {NAV_ITEMS.map((item) =>
           item.path == null ? (
             <div
               key={item.label}
               className="sidebar-nav-item sidebar-nav-item--placeholder"
               aria-disabled="true"
+              aria-label={collapsed ? item.label : undefined}
+              title={collapsed ? item.label : undefined}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
-              <span className="sidebar-nav-label">{item.label}</span>
+              <span className="sidebar-nav-label" aria-hidden={collapsed}>
+                {item.label}
+              </span>
             </div>
           ) : (
             <NavLink
               key={item.label}
               to={item.path}
+              title={collapsed ? item.label : undefined}
+              aria-label={collapsed ? item.label : undefined}
               className={() =>
                 `sidebar-nav-item ${
                   isNavActive(location.pathname, item.label) ? 'active' : ''
@@ -80,7 +145,9 @@ export function Sidebar() {
               }
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
-              <span className="sidebar-nav-label">{item.label}</span>
+              <span className="sidebar-nav-label" aria-hidden={collapsed}>
+                {item.label}
+              </span>
             </NavLink>
           ),
         )}
@@ -89,6 +156,8 @@ export function Sidebar() {
       <div className="sidebar-footer">
         <NavLink
           to="/account"
+          title={collapsed ? 'Account' : undefined}
+          aria-label={collapsed ? 'Account' : undefined}
           className={({ isActive }) => `sidebar-nav-item${isActive ? ' active' : ''}`}
         >
           <span className="sidebar-nav-icon">
@@ -98,7 +167,9 @@ export function Sidebar() {
               <path d="M5 16.5C5.5 14 7.5 12.5 10 12.5C12.5 12.5 14.5 14 15 16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </span>
-          <span className="sidebar-nav-label">Account</span>
+          <span className="sidebar-nav-label" aria-hidden={collapsed}>
+            Account
+          </span>
         </NavLink>
       </div>
     </aside>

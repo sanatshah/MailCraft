@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { useSearchPalette } from '../SearchPalette/useSearchPalette'
 import './Sidebar.css'
 
 /** Persisted across navigation; desktop layout only (mobile uses bottom nav). */
@@ -57,6 +58,7 @@ function readStoredCollapsed(): boolean {
 
 export function Sidebar() {
   const location = useLocation()
+  const { openPalette } = useSearchPalette()
   const [collapsed, setCollapsed] = useState(readStoredCollapsed)
 
   useEffect(() => {
@@ -85,34 +87,52 @@ export function Sidebar() {
           <div className="sidebar-header-actions">
             <button
               type="button"
+              className="sidebar-search-trigger"
+              aria-label="Open search"
+              title="Search (⌘K or Ctrl+K)"
+              data-testid="sidebar-search-trigger"
+              onClick={() => openPalette()}
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.5" />
+                <path
+                  d="M12.5 12.5L17 17"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
               className="sidebar-toggle"
               aria-expanded={!collapsed}
               aria-controls="sidebar-primary-nav"
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               onClick={() => setCollapsed((c) => !c)}
             >
-              {collapsed ? (
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                  <path
-                    d="M6 4L11 9L6 14"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                  <path
-                    d="M12 4L7 9L12 14"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </button>
+            {collapsed ? (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path
+                  d="M6 4L11 9L6 14"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path
+                  d="M12 4L7 9L12 14"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </button>
           </div>
         </div>
       </div>
@@ -161,7 +181,7 @@ export function Sidebar() {
           className={({ isActive }) => `sidebar-nav-item${isActive ? ' active' : ''}`}
         >
           <span className="sidebar-nav-icon">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
               <circle cx="10" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5" />
               <path d="M5 16.5C5.5 14 7.5 12.5 10 12.5C12.5 12.5 14.5 14 15 16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
